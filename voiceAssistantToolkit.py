@@ -12,7 +12,8 @@ import pyjokes
 import pyttsx3
 import pyglet
 from datetime import datetime
-
+from playsound import playsound
+from constants import UNKNOWN_TOKEN, FAILED_TOKEN
 
 
 class WakeWordDetector:
@@ -45,19 +46,55 @@ class WakeWordDetector:
 		# print("Resources deleted")
 
 class Bot:
-	def __init__(self, name, mic):
+	def __init__(self, name, mic, engine):
 		self.name = name
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
-		self.alive = True
+		self.engine = engine
+		
+	def listen(self):
+		self.engine.loadAndPlayReadySoundEffect()
+		try:
+			with self.listener as source:
+				try:
+					self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
+					logging.debug("Calibrating Mic")
+					logging.info("Listening...")
+					voice = self.recogniser.listen(source, timeout = 3, phrase_time_limit = 5)
+					logging.debug("Actually listening")
+					
+					logging.info("Voice received")
+					command	= self.transcribe(voice)					
+					logging.info("Trascribed voice")
+					command = command.strip().lower()
+					logging.info(f"Detected command: {command}")
+				except sr.WaitTimeoutError:
+					logging.warn("User didn't speak")
+					command = FAILED_TOKEN
+				
+				
+				
+				
+		except sr.UnknownValueError:
+			logging.warning("Couldn't detect voice")
+			command = UNKNOWN_TOKEN
+			
+		self.engine.execute(command)
+		
+	def transcribe(self, audio):
+		try:
+			command = self.recogniser.recognize_google(audio)
+		except sr.RequestError:
+			logging.warning("Internet unavailable. Using offline TTS")
+			command = self.recogniser.recognize_sphinx(audio)
+		return command
+		
+class Engine:	
+	def __init__(self, config = dict()):
 		self.voice = pyttsx3.init()
-		self.audioPlayer = None
-		
-		self.voice.setProperty("rate", 160)
-		
-	def is_alive(self):
-		return self.alive
-		
+		self.voice.setProperty("rate", 170)
+		self.config = config
+	
 	def setMaleAI(self):
 		self.set_gender("m")
 	
@@ -74,55 +111,35 @@ class Bot:
 			self.voice.setProperty('voice', voices[0].id)
 		elif gender.lower() == "f":
 			self.voice.setProperty('voice', voices[1].id)
-		
-	def listen(self):
-		try:
-			with self.listener as source:
-				try:
-					logging.info("Listening...")
-					self.recogniser.adjust_for_ambient_noise(source, duration = 0.5)
-					self.say("Hi") 	
-					voice = self.recogniser.listen(source, timeout = 5, phrase_time_limit = 5)#, None, self.listen_duration)
-					logging.info("Voice received")
-					command = self.recogniser.recognize_google(voice)
-					logging.info("Trascribed voice")
-					command = command.strip().lower()
-					logging.info(f"Detected command: {command}")
-				except sr.WaitTimeoutError:
-					self.say("I couldn't hear anything. Activate me again and repeat your command")
-				
-		except sr.UnknownValueError:
-			logging.warning("Couldn't detect voice")
-			self.say("Sorry I couldn't hear you clearly")
-			return
 			
-		self.process_command(command)
-		
-	def calibrateMic(self):
-		with self.listener as source:
-			self.recogniser.adjust_for_ambient_noise(source)  # we only need to calibrate once, before we start listening
+	def loadAndPlayReadySoundEffect(self):
+		playsound(self.config["sounds"]["ready sound"])
 	
-	def process_command(self, command):
-		if "shut down computer" in command:
+	def execute(self, command):
+		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
+			logging.info("Unknown or failed command detected")
+			playsound(self.config["sounds"]["negative sound"])
+		elif re.search("^shut.down.*(computer$|system$)", command):
+			logging.info("Shutting down system")
 			os.system("shutdown /s /t 1") 
-		elif "calibrate microphone" in command:
-			self.calibrateMic()
-			self.say("I have calibrated the microphone.")
 		elif re.search("^youtube.*", command):
 			logging.debug("Detected 'youtube' in command")
-			video = re.sub("play", "", command)
+			video = re.sub("youtube", "", command)
 			logging.debug(video)
 			self.say(f"Ok. Playing {video} on YouTube.")
 			pywhatkit.playonyt(video)
 		elif re.search("^play.*music$", command):
 			self.audioPlayer = pyglet.media.Player()
-			systemMusic = os.listdir(MUSIC_PATH)
-			chosenNumber = random.randint(0,len(systemMusic)-1)
-			chosenSong = systemMusic[chosenNumber]
+			musicLibrary = self.config["MUSIC_PATH"]
+			systemMusic = os.listdir(musicLibrary)			
 			
-			song = pyglet.media.load(MUSIC_PATH + chosenSong)
-			self.audioPlayer.queue(song)
-			self.say("Ok. Playing a random song from your system")
+			self.say("Ok. Playing music from your music library")
+			for music in systemMusic:
+				try:
+					song = pyglet.media.load(musicLibrary + "\\" + music)
+					self.audioPlayer.queue(song)
+				except:
+					break
 			self.audioPlayer.play()
 		elif re.search("^stop.*music$", command):
 			self.audioPlayer.pause()
@@ -146,16 +163,17 @@ class Bot:
 			else:
 				self.say("You can ask me to tell you a joke or the time")
 		elif "a male assistant" in command:
-			logging.debug("Detected 'be a male' in command")
+			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
-			self.say("Done! How do I sound?")
+			playsound(self.config["sounds"]["positive sound"])
 		elif "a female assistant" in command:
-			logging.debug("Detected 'be a female' in command")
+			logging.debug("Detected 'a female assistant' in command")
 			self.setFemaleAI()
-			self.say("Done! How do I sound?")	
+			playsound(self.config["sounds"]["positive sound"])
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
-			self.alive = False
+			logging.info("Exiting programme")
+			exit()
 		else:
 			logging.debug("Detected a search command")
 			if (queue := "what is") in command or (queue := "what's") in command or \
@@ -168,12 +186,28 @@ class Bot:
 				info = wikipedia.summary(sub_command, 2)
 				self.say(info)
 			except wikipedia.DisambiguationError:
-				logging.warning("Wikipedia error")
+				logging.error("Wikipedia error")
 				self.say("Sorry, there were quite many possible searches. \
 					Mind if you be more specific in your search terms? Thanks!")
-			# except wikipedia.exceptions.PageError:
-				# logging.warning("Wikipedia error")
-				# self.say(f"Sorry, there are no matching searches for {sub_command}")
+			except wikipedia.exceptions.PageError:
+				logging.error("Wikipedia error")
+				self.say(f"Sorry, there are no matching searches for {sub_command}")
 	
 
+if __name__ == "__main__":
+	from config import engineConfig
+	from time import sleep
+	from playsound import playsound
+	import os
+	musicLibrary = engineConfig["MUSIC_PATH"]
+	systemMusic = os.listdir(musicLibrary)
+	music = systemMusic[0]
+	path2song = musicLibrary + "\\" + music
+	print(path2song)
+	song = pyglet.media.load(path2song)
+	player = pyglet.media.Player()
+	player.queue(song)
+	
+	player.play()
+	sleep(300)	
 

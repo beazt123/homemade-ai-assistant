@@ -1,23 +1,20 @@
 import logging
 import speech_recognition as sr
-from config import readme, MUSIC_PATH
-from voiceAssistantToolkit import WakeWordDetector, Bot
+from config import readme, engineConfig
+from voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 
 def main():
 	print(readme)
 	logging.basicConfig(level="INFO")
 	agent = WakeWordDetector()
+	engine = Engine(engineConfig)
 	print("Agent on standby")
-	bot = Bot("Ajax", sr.Microphone())
-	bot.calibrateMic()
+	bot = Bot("Ajax", sr.Microphone(), engine)
 	while True:
 		try:
-			if bot.is_alive():
-				agent.waitForWakeWord()
-				bot.listen()
-			else:
-				break
+			agent.waitForWakeWord()
+			bot.listen()
 		except KeyboardInterrupt:
 			break
 		
