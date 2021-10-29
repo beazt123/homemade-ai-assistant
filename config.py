@@ -1,13 +1,16 @@
+import os
 from pvporcupine import KEYWORDS
 
 engineConfig = dict()
-engineConfig["MUSIC_PATH"] = "D:\\\\Music"
+engineConfig["MUSIC_PATH"] = os.path.join("D:\\","Music")
 
 soundEffects = dict()
-soundEffects["ready sound"] = r"soundEffects\done-trimmed.wav"
-soundEffects["negative sound"] = r"soundEffects\failure-01.wav"
-soundEffects["level up sound"] = r"soundEffects\level-up-03.wav"
-soundEffects["positive sound"] = r"soundEffects\done.wav"
+soundsFolder = os.path.join("resources", "soundEffects")
+soundEffects["ready sound"] = os.path.join(soundsFolder, "done-trimmed.wav")
+soundEffects["negative sound"] = os.path.join(soundsFolder, "failure-01.wav")
+soundEffects["level up sound"] = os.path.join(soundsFolder, "level-up-03.wav")
+soundEffects["positive sound"] = os.path.join(soundsFolder, "done.wav")
+
 engineConfig["sounds"] = soundEffects
 
 readme = \
