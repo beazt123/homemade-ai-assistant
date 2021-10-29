@@ -4,7 +4,7 @@ engineConfig = dict()
 engineConfig["MUSIC_PATH"] = "D:\\\\Music"
 
 soundEffects = dict()
-soundEffects["ready sound"] = r"soundEffects\ready.wav"
+soundEffects["ready sound"] = r"soundEffects\done-trimmed.wav"
 soundEffects["negative sound"] = r"soundEffects\failure-01.wav"
 soundEffects["level up sound"] = r"soundEffects\level-up-03.wav"
 soundEffects["positive sound"] = r"soundEffects\done.wav"
@@ -12,7 +12,7 @@ engineConfig["sounds"] = soundEffects
 
 readme = \
 """
-AI powered stupid assistant
+A.I general assistant
 ===========================
 Wake words:
 	Please say any 1 of the following words to wake the assistant:
@@ -56,4 +56,4 @@ Command words:
 		Shuts down the computer. Rmb to save your work!
 		I.e. "shut down computer"
 
-""".format(wakeWords = ", ".join(KEYWORDS))
+""".format(wakeWords = ", \n\t\t".join(KEYWORDS))
