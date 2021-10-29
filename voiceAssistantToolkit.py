@@ -6,13 +6,13 @@ import struct
 import logging
 import pvporcupine
 import speech_recognition as sr
-import pywhatkit
 import wikipedia
 import pyjokes
 import pyttsx3
 import pyglet
 from datetime import datetime
 from playsound import playsound
+from utils import playOnYoutube, googleSearchFor
 from constants import UNKNOWN_TOKEN, FAILED_TOKEN
 
 
@@ -75,9 +75,6 @@ class Bot:
 					logging.debug("User didn't speak")
 					command = FAILED_TOKEN
 				
-				
-				
-				
 		except sr.UnknownValueError:
 			logging.info("Couldn't detect voice")
 			command = UNKNOWN_TOKEN
@@ -125,12 +122,14 @@ class Engine:
 		elif re.search("^shut.down.*(computer$|system$)", command):
 			logging.info("Shutting down system")
 			os.system("shutdown /s /t 1") 
-		elif re.search("^youtube.*", command):
+		elif re.search("^youtube.*", command) or re.search(".*(on youtube)$", command):
+			if re.search("^play.*", command):
+				command = re.sub("play", "", command)
 			logging.debug("Detected 'youtube' in command")
 			video = re.sub("youtube", "", command)
 			logging.debug(video)
 			self.say(f"Ok. Playing {video} on YouTube.")
-			pywhatkit.playonyt(video)
+			playOnYoutube(video)
 		elif re.search("^play.*music$", command):
 			self.audioPlayer = pyglet.media.Player()
 			musicLibrary = self.config["MUSIC_PATH"]
@@ -151,7 +150,7 @@ class Engine:
 		elif re.search("^google.*", command):
 			search = re.sub("google", "", command)
 			self.say(f"OK. Searching for {search} on Google")
-			pywhatkit.search(search)
+			googleSearchFor(search)
 		elif re.search("^tell.*", command):
 			logging.debug("Detected 'tell' in command")
 			command = command.replace("?","")
