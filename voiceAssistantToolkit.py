@@ -52,31 +52,34 @@ class Bot:
 		self.recogniser = sr.Recognizer()
 		self.engine = engine
 		
+	def adjust_for_ambient_noise(self):
+		logging.debug("Calibrating Mic")
+		with self.listener as source:
+			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
+		
 	def listen(self):
-		self.engine.loadAndPlayReadySoundEffect()
+		self.engine.readySoundEffect()
 		try:
 			with self.listener as source:
-				try:
-					self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
-					logging.debug("Calibrating Mic")
+				try:					
 					logging.info("Listening...")
 					voice = self.recogniser.listen(source, timeout = 3, phrase_time_limit = 5)
 					logging.debug("Actually listening")
 					
-					logging.info("Voice received")
+					logging.debug("Voice received")
 					command	= self.transcribe(voice)					
-					logging.info("Trascribed voice")
+					logging.debug("Transcribed voice")
 					command = command.strip().lower()
-					logging.info(f"Detected command: {command}")
+					logging.debug(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
-					logging.warn("User didn't speak")
+					logging.debug("User didn't speak")
 					command = FAILED_TOKEN
 				
 				
 				
 				
 		except sr.UnknownValueError:
-			logging.warning("Couldn't detect voice")
+			logging.info("Couldn't detect voice")
 			command = UNKNOWN_TOKEN
 			
 		self.engine.execute(command)
@@ -112,8 +115,8 @@ class Engine:
 		elif gender.lower() == "f":
 			self.voice.setProperty('voice', voices[1].id)
 			
-	def loadAndPlayReadySoundEffect(self):
-		playsound(self.config["sounds"]["ready sound"])
+	def readySoundEffect(self):
+		playsound(self.config["sounds"]["ready sound"], block = False) # non-blocking playback not supported for linux
 	
 	def execute(self, command):
 		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
@@ -159,7 +162,9 @@ class Engine:
 				logging.info(msg)
 				self.say(msg)
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
-				self.say(pyjokes.get_joke())
+				joke = pyjokes.get_joke()
+				logging.info(joke)
+				self.say(joke)
 			else:
 				self.say("You can ask me to tell you a joke or the time")
 		elif "a male assistant" in command:

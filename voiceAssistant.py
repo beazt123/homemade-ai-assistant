@@ -13,6 +13,7 @@ def main():
 	bot = Bot("Ajax", sr.Microphone(), engine)
 	while True:
 		try:
+			bot.adjust_for_ambient_noise()
 			agent.waitForWakeWord()
 			bot.listen()
 		except KeyboardInterrupt:
