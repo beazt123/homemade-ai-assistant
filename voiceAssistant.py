@@ -6,14 +6,15 @@ from voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 def main():
 	print(readme)
-	logging.basicConfig(level="INFO")
+	# logging.basicConfig(level="INFO")
+	logging.disable(logging.CRITICAL);
 	agent = WakeWordDetector()
 	engine = Engine(engineConfig)
-	print("Agent on standby")
 	bot = Bot("Ajax", sr.Microphone(), engine)
 	while True:
 		try:
 			bot.adjust_for_ambient_noise()
+			print("Ready")
 			agent.waitForWakeWord()
 			bot.listen()
 		except KeyboardInterrupt:
