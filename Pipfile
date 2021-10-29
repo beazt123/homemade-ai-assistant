@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+speechrecognition = "*"
+pvporcupine = "*"
+pyaudio = {path = "./PyAudio-0.2.11-cp39-cp39-win_amd64.whl"}
+pywhatkit = "*"
+pyjokes = "*"
+pyttsx3 = "*"
+pyglet = "*"
+playsound = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
