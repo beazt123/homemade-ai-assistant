@@ -1,23 +1,30 @@
+from ntpath import join
 import re
 import os
 import pyaudio
 import random
 import struct
 import logging
+import textwrap
 import pvporcupine
 import speech_recognition as sr
 import wikipedia
 import pyjokes
 import pyttsx3
 import pyglet
+import newspaper
+from pickle import dump, load
+from collections import defaultdict
 
 
 from datetime import datetime
 from playsound import playsound
-from utils import playOnYoutube, googleSearchFor
-from constants import UNKNOWN_TOKEN, FAILED_TOKEN
+from ..utils import playOnYoutube, googleSearchFor
+from ..constants import UNKNOWN_TOKEN, FAILED_TOKEN
 
-from pprint import pprint
+NEWS_FILE = "newsFile"
+NEWS_WEBSITE = "https://www.straitstimes.com/"
+NUM_ARTICLES = 5
 
 
 class WakeWordDetector:
@@ -55,6 +62,12 @@ class Bot:
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
 		self.engine = engine
+	
+	def __del__(self):
+		del self.name
+		del self.listener
+		del self.recogniser
+		del self.engine
 		
 	def adjust_for_ambient_noise(self):
 		logging.debug("Calibrating Mic")
@@ -91,6 +104,8 @@ class Bot:
 		except sr.RequestError:
 			logging.warning("Internet unavailable. Using offline TTS")
 			command = self.recogniser.recognize_sphinx(audio)
+
+		logging.debug(command)
 		return command
 		
 class Engine:	
@@ -98,6 +113,23 @@ class Engine:
 		self.voice = pyttsx3.init()
 		self.voice.setProperty("rate", 170)
 		self.config = config
+		self.newsRecord = defaultdict(lambda : set())
+
+		# try:
+		# 	with open(NEWS_FILE, "rb") as newsFile:
+		# 		self.newsRecord = load(newsFile)
+		# except FileNotFoundError:
+		# 	logging.info("No news records found. Downloading one online...")
+		# 	self.newsRecord["newspaper"] = newspaper.build(NEWS_WEBSITE)
+		# except EOFError:
+		# 	logging.warn("Empty news file unreadble")
+
+	# def __del__(self):
+	# 	logging.info('Saving news downloads externally')
+	# 	with open(NEWS_FILE, "wb") as newsFile:
+	# 		logging.debug("Opened news file")
+	# 		dump(self.newsRecord, newsFile)
+	# 		logging.debug("Saved news file")
 	
 	def setMaleAI(self):
 		self.set_gender("m")
@@ -118,7 +150,8 @@ class Engine:
 			
 	def readySoundEffect(self):
 		playsound(self.config["sounds"]["ready"], block = False) # non-blocking playback not supported for linux
-	
+
+
 	def execute(self, command):
 		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
 			logging.info("Unknown or failed command detected")
@@ -127,11 +160,11 @@ class Engine:
 			logging.info("Shutting down system")
 			self.say("Alright. Shutting down your computer right now.")
 			os.system("shutdown /s /t 1") 
-		elif re.search("^youtube.*", command) or re.search(".*(on youtube)$", command):
+		elif re.search("(^youtube.*)|(.*(on youtube)$)", command):
 			if re.search("^play.*", command):
 				command = re.sub("play", "", command)
 			logging.debug("Detected 'youtube' in command")
-			video = re.sub("youtube", "", command)
+			video = re.sub("on youtube", "", command)
 			logging.debug(video)
 			self.say(f"Ok. Playing {video} on YouTube.")
 			playOnYoutube(video)
@@ -172,20 +205,59 @@ class Engine:
 				joke = pyjokes.get_joke()
 				print(joke)
 				self.say(joke)
+		elif re.search("^news|news$", command):
+			newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
+
+			try:
+				selectedNews = random.sample(newNews, NUM_ARTICLES)
+			except:
+				self.say("The online news website may have blocked my request. So I'm unable to query for the latest news")
+				return
+
+
+			self.say(f"No problem. Bringing you {NUM_ARTICLES} articles")
+
+			for article in selectedNews:
+				article.download()
+				logging.debug("Downloaded article")
+				article.parse()
+				logging.debug("Parsed article")
+				article.nlp()
+				logging.debug("NLP article")
+
+				print(f"Title : {article.title}\n")
+				print(f"Authors: {', '.join(article.authors)}\n")
+				self.say(article.title)
+				print(f"Summary : {article.summary}\n")
+				dedented_text = textwrap.dedent(article.summary).strip()
+				print(textwrap.fill(dedented_text, width=80))
+
+				self.say(article.summary)
+				print(f"Video links : {article.movies}\n")
+				print(f"Article links : {article.url}")
+
+				self.newsRecord["readBefore"].add(article)
+			
+			self.say("That's all for now. Ping me again if you wanna hear more news of the day")
+
 
 				
+
+
+		elif "female assistant" in command:
+			logging.debug("Detected 'a female assistant' in command")
+			self.setFemaleAI()
+			playsound(self.config["sounds"]["positive"])		
 		elif "male assistant" in command:
 			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
 			playsound(self.config["sounds"]["positive"])
-		elif "female assistant" in command:
-			logging.debug("Detected 'a female assistant' in command")
-			self.setFemaleAI()
-			playsound(self.config["sounds"]["positive"])
+		
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
 			logging.info("Exiting programme")
 			playsound(self.config["sounds"]["switchOff"])
+			del self
 			exit()
 		else:
 			logging.debug("Detected a search command")

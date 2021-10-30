@@ -2,8 +2,8 @@ import logging
 import warnings
 
 import speech_recognition as sr
-from config import readme, engineConfig
-from voiceAssistantToolkit import WakeWordDetector, Bot, Engine
+from lib.config import readme, engineConfig
+from lib.engine.voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 
 def main():
@@ -21,6 +21,9 @@ def main():
 			agent.waitForWakeWord()
 			bot.listen()
 		except KeyboardInterrupt:
+			del bot
+			del agent
+			del engine
 			break
 		
 

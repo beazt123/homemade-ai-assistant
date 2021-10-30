@@ -4,13 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyaudio = {path = "./PyAudio-0.2.11-cp39-cp39-win_amd64.whl"}
+pyaudio = {path = "./dependencies/PyAudio-0.2.11-cp39-cp39-win_amd64.whl"}
 speechrecognition = "*"
 pvporcupine = "*"
 pyjokes = "*"
 pyttsx3 = "*"
 pyglet = "*"
-playsound = "*"
+playsound = "==1.2.2"
+wikipedia = "*"
+newspaper3k = "*"
+joblib = "*"
+numpy = "*"
 
 [dev-packages]
 
