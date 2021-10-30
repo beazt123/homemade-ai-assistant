@@ -6,10 +6,13 @@ engineConfig["MUSIC_PATH"] = os.path.join("D:\\","Music")
 
 soundEffects = dict()
 soundsFolder = os.path.join("resources", "soundEffects")
-soundEffects["ready sound"] = os.path.join(soundsFolder, "done-trimmed.wav")
-soundEffects["negative sound"] = os.path.join(soundsFolder, "failure-01.wav")
-soundEffects["level up sound"] = os.path.join(soundsFolder, "level-up-03.wav")
-soundEffects["positive sound"] = os.path.join(soundsFolder, "done.wav")
+soundEffects["ready"] = os.path.join(soundsFolder, "done-trimmed-volboosted.wav")
+soundEffects["negative"] = os.path.join(soundsFolder, "failure-01.wav")
+soundEffects["atEase"] = os.path.join(soundsFolder, "at-ease.wav")
+soundEffects["levelUp"] = os.path.join(soundsFolder, "level-up-03.wav")
+soundEffects["positive"] = os.path.join(soundsFolder, "done.wav")
+soundEffects["switchOff"] = os.path.join(soundsFolder, "futuristic-door-open-trimmed.mp3")
+
 
 engineConfig["sounds"] = soundEffects
 
@@ -23,13 +26,13 @@ Wake words:
 		
 Command words:
 
-	GOOGLE: 
-		Performs a google search on your browser.
-		I.e. Say "google most recommended reed diffuser"
+	GOOGLE/YOUTUBE/WIKI: 
+		Performs a search on your browser for Google & Youtube.
+		Wiki searches will show here with audio response.
 		
-	YOUTUBE:
-		Plays a youtube video on your browser.
-		I.e. Say "youtube bloodstream ed sheeran"
+		I.e. Say "google most recommended reed diffuser"
+			 Say "youtube bloodstream ed sheeran"
+			 Say "wiki Donald Trump"
 		
 	PLAY / STOP...MUSIC:
 		Plays a random music on a pre-set directory
@@ -37,10 +40,9 @@ Command words:
 			say "play the music" or 
 			say "stop the music" or
 			say "stop playing the music"
-		
-	WHO'S / WHAT'S:
-		Says a 2 linear summary from a wikipedia search.
-		I.e. Say "who is Donald trump" or "what is black hole"
+			
+	GIMME THE LATEST NEWS:
+		Brings you summaries of the top 5 articles from a specified news site
 		
 	TELL...TIME / JOKE:
 		Tells you a joke or the time
@@ -52,11 +54,11 @@ Command words:
 		I.e. "can I talk to a female assistant?"
 		
 	BYE-BYE:
-		Closes the programme
+		Closes this program.
 		I.e. "goodbye" or "bye" or "bye-bye"
 		
 	SHUT DOWN COMPUTER:
 		Shuts down the computer. Rmb to save your work!
-		I.e. "shut down computer"
+		I.e. "shut down computer!"
 
 """.format(wakeWords = ", \n\t\t".join(KEYWORDS))

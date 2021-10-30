@@ -10,10 +10,14 @@ import wikipedia
 import pyjokes
 import pyttsx3
 import pyglet
+
+
 from datetime import datetime
 from playsound import playsound
 from utils import playOnYoutube, googleSearchFor
 from constants import UNKNOWN_TOKEN, FAILED_TOKEN
+
+from pprint import pprint
 
 
 class WakeWordDetector:
@@ -63,7 +67,7 @@ class Bot:
 			with self.listener as source:
 				try:					
 					logging.info("Listening...")
-					voice = self.recogniser.listen(source, timeout = 3, phrase_time_limit = 5)
+					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
 					logging.debug("Actually listening")
 					
 					logging.debug("Voice received")
@@ -113,14 +117,15 @@ class Engine:
 			self.voice.setProperty('voice', voices[1].id)
 			
 	def readySoundEffect(self):
-		playsound(self.config["sounds"]["ready sound"], block = False) # non-blocking playback not supported for linux
+		playsound(self.config["sounds"]["ready"], block = False) # non-blocking playback not supported for linux
 	
 	def execute(self, command):
 		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
 			logging.info("Unknown or failed command detected")
-			playsound(self.config["sounds"]["negative sound"])
+			playsound(self.config["sounds"]["atEase"], block = False)
 		elif re.search("^shut.down.*(computer$|system$)", command):
 			logging.info("Shutting down system")
+			self.say("Alright. Shutting down your computer right now.")
 			os.system("shutdown /s /t 1") 
 		elif re.search("^youtube.*", command) or re.search(".*(on youtube)$", command):
 			if re.search("^play.*", command):
@@ -133,12 +138,15 @@ class Engine:
 		elif re.search("^play.*music$", command):
 			self.audioPlayer = pyglet.media.Player()
 			musicLibrary = self.config["MUSIC_PATH"]
-			systemMusic = os.listdir(musicLibrary)			
+			systemMusic = os.listdir(musicLibrary)
 			
-			self.say("Ok. Playing music from your music library")
+			random.shuffle(systemMusic)
+			
+			self.say("Ok. Playing music from your music library in shuffle mode")
+			logging.debug(systemMusic)
 			for music in systemMusic:
 				try:
-					song = pyglet.media.load(musicLibrary + "\\" + music)
+					song = pyglet.media.load(os.path.join(musicLibrary, music))
 					self.audioPlayer.queue(song)
 				except:
 					break
@@ -158,33 +166,37 @@ class Engine:
 				logging.debug("Detected 'time' in command")
 				time = datetime.now().strftime('%I:%M %p')
 				msg = 'Current time is ' + time
-				logging.info(msg)
+				print(msg)
 				self.say(msg)
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
 				joke = pyjokes.get_joke()
-				logging.info(joke)
+				print(joke)
 				self.say(joke)
-			else:
-				self.say("You can ask me to tell you a joke or the time")
-		elif "a male assistant" in command:
+
+				
+		elif "male assistant" in command:
 			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
-			playsound(self.config["sounds"]["positive sound"])
-		elif "a female assistant" in command:
+			playsound(self.config["sounds"]["positive"])
+		elif "female assistant" in command:
 			logging.debug("Detected 'a female assistant' in command")
 			self.setFemaleAI()
-			playsound(self.config["sounds"]["positive sound"])
+			playsound(self.config["sounds"]["positive"])
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
 			logging.info("Exiting programme")
+			playsound(self.config["sounds"]["switchOff"])
 			exit()
 		else:
 			logging.debug("Detected a search command")
 			if (queue := "what is") in command or (queue := "what's") in command or \
 				(queue := "who is") in command or (queue := "who's") in command:
 				sub_command = command.replace(queue,"").strip()
+			elif re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
+				sub_command = command.replace("wikipedia","").strip()
+				sub_command = sub_command.replace("wiki","").strip()
 			else:
-				self.say("I can't hear you clearly.")
+				self.say("Sorry, I don't understand that command.")
 				return
 			try:
 				info = wikipedia.summary(sub_command, 2)
@@ -215,3 +227,23 @@ if __name__ == "__main__":
 	player.play()
 	sleep(300)	
 
+		# elif re.search("(^news|news$)|(newspaper)", command):
+		# 	url='https://www.straitstimes.com/'
+		# 	numArticles = 2
+			
+		# 	paper = newspaper.build(url)
+		# 	logging.debug("Starting articles download")
+		# 	for article in paper.articles[:numArticles]:
+		# 		article.download()
+		# 		logging.debug("Downloaded article")
+		# 		article.parse()
+		# 		logging.debug("Parsed article")
+		# 		article.nlp()
+		# 		logging.debug("NLP-ed article")
+
+		# 		print(f"Title : {article.title}\n")
+		# 		print(f"Authors: {article.authors}\n")
+		# 		print(f"Summary : {article.summary}\n")
+		# 		print(f"Video links : {article.movies}\n")
+		# 		print(f"Article links : {article.url}")
+		# 		# print(f"Keywords : {article.keywords}\n")

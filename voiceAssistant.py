@@ -1,12 +1,15 @@
 import logging
+import warnings
+
 import speech_recognition as sr
 from config import readme, engineConfig
 from voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 
 def main():
+	warnings.filterwarnings("ignore")
 	print(readme)
-	# logging.basicConfig(level="INFO")
+	# logging.basicConfig(level="DEBUG")
 	logging.disable(logging.CRITICAL);
 	agent = WakeWordDetector()
 	engine = Engine(engineConfig)
