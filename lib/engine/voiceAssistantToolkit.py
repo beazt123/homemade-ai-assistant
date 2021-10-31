@@ -1,4 +1,3 @@
-from ntpath import join
 import re
 import os
 import pyaudio
@@ -114,23 +113,8 @@ class Engine:
 		self.voice.setProperty("rate", 170)
 		self.config = config
 		self.newsRecord = defaultdict(lambda : set())
+		# self.newsRecord["newspaper"] = newspaper.build(NEWS_WEBSITE)
 
-		# try:
-		# 	with open(NEWS_FILE, "rb") as newsFile:
-		# 		self.newsRecord = load(newsFile)
-		# except FileNotFoundError:
-		# 	logging.info("No news records found. Downloading one online...")
-		# 	self.newsRecord["newspaper"] = newspaper.build(NEWS_WEBSITE)
-		# except EOFError:
-		# 	logging.warn("Empty news file unreadble")
-
-	# def __del__(self):
-	# 	logging.info('Saving news downloads externally')
-	# 	with open(NEWS_FILE, "wb") as newsFile:
-	# 		logging.debug("Opened news file")
-	# 		dump(self.newsRecord, newsFile)
-	# 		logging.debug("Saved news file")
-	
 	def setMaleAI(self):
 		self.set_gender("m")
 	
@@ -151,12 +135,11 @@ class Engine:
 	def readySoundEffect(self):
 		playsound(self.config["sounds"]["ready"], block = False) # non-blocking playback not supported for linux
 
-
 	def execute(self, command):
 		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
 			logging.info("Unknown or failed command detected")
 			playsound(self.config["sounds"]["atEase"], block = False)
-		elif re.search("^shut.down.*(computer$|system$)", command):
+		elif re.search("^shutdown.*(computer$|system$)", command):
 			logging.info("Shutting down system")
 			self.say("Alright. Shutting down your computer right now.")
 			os.system("shutdown /s /t 1") 
@@ -165,6 +148,7 @@ class Engine:
 				command = re.sub("play", "", command)
 			logging.debug("Detected 'youtube' in command")
 			video = re.sub("on youtube", "", command)
+			video = re.sub("youtube", "", video)
 			logging.debug(video)
 			self.say(f"Ok. Playing {video} on YouTube.")
 			playOnYoutube(video)
@@ -181,8 +165,11 @@ class Engine:
 				try:
 					song = pyglet.media.load(os.path.join(musicLibrary, music))
 					self.audioPlayer.queue(song)
-				except:
-					break
+				except pyglet.media.codecs.wave.WAVEDecodeException:
+					pass
+
+			
+			self.audioPlayer.eos_action = self.audioPlayer.next_source
 			self.audioPlayer.play()
 		elif re.search("^stop.*music$", command):
 			self.audioPlayer.pause()
@@ -205,14 +192,16 @@ class Engine:
 				joke = pyjokes.get_joke()
 				print(joke)
 				self.say(joke)
-		elif re.search("^news|news$", command):
+		elif re.search("(^news.*)|(.*news$)", command):
 			newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
 
 			try:
 				selectedNews = random.sample(newNews, NUM_ARTICLES)
-			except:
-				self.say("The online news website may have blocked my request. So I'm unable to query for the latest news")
-				return
+			except ValueError:
+				selectedNews = random.sample(newNews, len(selectedNews))
+				if len(selectedNews) == 0:
+					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news. Why catch up with the news if all they have is bad news anyway")
+					return
 
 
 			self.say(f"No problem. Bringing you {NUM_ARTICLES} articles")
@@ -228,31 +217,25 @@ class Engine:
 				print(f"Title : {article.title}\n")
 				print(f"Authors: {', '.join(article.authors)}\n")
 				self.say(article.title)
-				print(f"Summary : {article.summary}\n")
+				# print(f"Summary : {article.summary}\n")
 				dedented_text = textwrap.dedent(article.summary).strip()
 				print(textwrap.fill(dedented_text, width=80))
 
 				self.say(article.summary)
-				print(f"Video links : {article.movies}\n")
-				print(f"Article links : {article.url}")
-
-				self.newsRecord["readBefore"].add(article)
-			
-			self.say("That's all for now. Ping me again if you wanna hear more news of the day")
-
-
+				print(f"Source: {article.url}\n")
+				print(f"Video links: {article.movies}\n")
 				
 
-
+				self.newsRecord["readBefore"].add(article.url)
+			
+			self.say("That's all for now. Ping me again if you wanna hear more news of the day")
 		elif "female assistant" in command:
 			logging.debug("Detected 'a female assistant' in command")
 			self.setFemaleAI()
-			playsound(self.config["sounds"]["positive"])		
+			playsound(self.config["sounds"]["positive"])	
 		elif "male assistant" in command:
 			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
-			playsound(self.config["sounds"]["positive"])
-		
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
 			logging.info("Exiting programme")
@@ -319,3 +302,4 @@ if __name__ == "__main__":
 		# 		print(f"Video links : {article.movies}\n")
 		# 		print(f"Article links : {article.url}")
 		# 		# print(f"Keywords : {article.keywords}\n")
+		
