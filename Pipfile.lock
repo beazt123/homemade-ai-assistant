@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f44a29cf635416088a05aa2498bedc0df3af444550b06a41128c7612022ff53a"
+            "sha256": "8dbf7525cb43aa47b36b387840016599e562467902906414440ac80b08eacbe0"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -306,7 +306,7 @@
                 "sha256:cf1543ba50bd44ac0d0ab5c035bb9c3127eb76047ff12235149d9adf86f532b6",
                 "sha256:f78d543a98b730e64621ebf7f3e2868a79ade0a373882ef51c0293455ffa8e6e"
             ],
-            "path": "./PyAudio-0.2.11-cp39-cp39-win_amd64.whl",
+            "path": "./dependencies/PyAudio-0.2.11-cp39-cp39-win_amd64.whl",
             "version": "==0.2.11"
         },
         "pyglet": {
