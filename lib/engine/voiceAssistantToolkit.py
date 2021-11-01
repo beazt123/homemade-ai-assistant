@@ -198,7 +198,7 @@ class Engine:
 			try:
 				selectedNews = random.sample(newNews, NUM_ARTICLES)
 			except ValueError:
-				selectedNews = random.sample(newNews, len(selectedNews))
+				selectedNews = random.sample(newNews, len(newNews))
 				if len(selectedNews) == 0:
 					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news. Why catch up with the news if all they have is bad news anyway")
 					return
