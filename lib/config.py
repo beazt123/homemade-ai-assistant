@@ -6,7 +6,7 @@ engineConfig["MUSIC_PATH"] = os.path.join("D:\\","Music")
 
 newsConfig = dict()
 newsConfig["WEBSITE"] = "https://www.straitstimes.com/"
-newsConfig["NUM_ARTICLE"] = 5
+newsConfig["NUM_ARTICLES"] = 5
 
 soundEffects = dict()
 soundsFolder = os.path.join("resources", "soundEffects")
