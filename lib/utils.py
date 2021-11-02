@@ -1,6 +1,25 @@
+import os
 import webbrowser as web
+import logging
 import requests
+from glob import iglob
+from itertools import chain
+from playsound import playsound, PlaysoundException
 
+
+def playPlaylist(playlist):
+	logging.info("Starting playlist")
+	for song in playlist:
+		logging.info(f"Attempting to play {song}")
+		try:
+			playsound(song)
+			logging.debug(f"Played {song}")
+		except PlaysoundException:
+			logging.error("MCI error. Skipping current song")
+		except:
+			logging.error("Unknown error")
+		
+	logging.info("Done playing playlist")
 
 def playOnYoutube(topic: str):
 	"""Play a YouTube Video"""
@@ -27,3 +46,17 @@ def googleSearchFor(topic: str) -> None:
 
 	link = "https://www.google.com/search?q={}".format(topic)
 	web.open(link)
+	
+	
+def generateAllMusicFiles(exts = ["mp3"]):
+	homeDrive = os.getenv("HOMEDRIVE")
+	homePath = os.getenv("HOMEPATH")
+	homeFullPath = os.path.join(homeDrive, homePath)
+	
+	
+	generatorList = [iglob(os.path.join(homeFullPath,f"**/*.{ext}"), recursive=True) for ext in exts]
+	
+	generator = chain(*generatorList)
+	
+	return generator
+		

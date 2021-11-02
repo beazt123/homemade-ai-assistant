@@ -10,20 +10,16 @@ import speech_recognition as sr
 import wikipedia
 import pyjokes
 import pyttsx3
-import pyglet
 import newspaper
-from pickle import dump, load
+from multiprocessing import Process
+from glob import glob
 from collections import defaultdict
 
 
 from datetime import datetime
 from playsound import playsound
-from ..utils import playOnYoutube, googleSearchFor
+from ..utils import playOnYoutube, googleSearchFor, playPlaylist, generateAllMusicFiles
 from ..constants import UNKNOWN_TOKEN, FAILED_TOKEN
-
-NEWS_FILE = "newsFile"
-NEWS_WEBSITE = "https://www.straitstimes.com/"
-NUM_ARTICLES = 5
 
 
 class WakeWordDetector:
@@ -113,7 +109,9 @@ class Engine:
 		self.voice.setProperty("rate", 170)
 		self.config = config
 		self.newsRecord = defaultdict(lambda : set())
-		# self.newsRecord["newspaper"] = newspaper.build(NEWS_WEBSITE)
+		self.musicProcess = None
+		# self.newsRecord["newspaper"] = newspaper.build(self.config["NEWS"]["WEBSITE"])
+	
 
 	def setMaleAI(self):
 		self.set_gender("m")
@@ -153,28 +151,34 @@ class Engine:
 			self.say(f"Ok. Playing {video} on YouTube.")
 			playOnYoutube(video)
 		elif re.search("^play.*music$", command):
-			self.audioPlayer = pyglet.media.Player()
 			musicLibrary = self.config["MUSIC_PATH"]
-			systemMusic = os.listdir(musicLibrary)
+			systemMusic = glob(os.path.join(musicLibrary, "*.mp3"))#os.listdir(musicLibrary)
+			
 			
 			random.shuffle(systemMusic)
 			
 			self.say("Ok. Playing music from your music library in shuffle mode")
 			logging.debug(systemMusic)
-			for music in systemMusic:
-				try:
-					song = pyglet.media.load(os.path.join(musicLibrary, music))
-					self.audioPlayer.queue(song)
-				except pyglet.media.codecs.wave.WAVEDecodeException:
-					pass
-
+			playlist = systemMusic
+			# playlist = [os.path.join(musicLibrary, music) for music in systemMusic]
+			if len(playlist) == 0:
+				logging.warn("No music found in specified directory. Scanning the computer for music")
+				playlist = generateAllMusicFiles()
+				
+				
+			logging.debug("Playing first song")
+			self.musicProcess = Process(target=playPlaylist, args=(playlist,))
+			self.musicProcess.daemon = True
+			logging.debug("Created process to play music")
+			self.musicProcess.start()
+			logging.debug("Started process to play music")
 			
-			self.audioPlayer.eos_action = self.audioPlayer.next_source
-			self.audioPlayer.play()
 		elif re.search("^stop.*music$", command):
-			self.audioPlayer.pause()
-			self.audioPlayer.delete()
-			del self.audioPlayer
+			self.musicProcess.terminate()
+			del self.musicProcess
+			logging.debug("Terminated music process")
+			
+			
 		elif re.search("^google.*", command):
 			search = re.sub("google", "", command)
 			self.say(f"OK. Searching for {search} on Google")
@@ -196,7 +200,7 @@ class Engine:
 			newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
 
 			try:
-				selectedNews = random.sample(newNews, NUM_ARTICLES)
+				selectedNews = random.sample(newNews, self.config["NEWS"]["NUM_ARTICLES"])
 			except ValueError:
 				selectedNews = random.sample(newNews, len(newNews))
 				if len(selectedNews) == 0:
@@ -204,7 +208,7 @@ class Engine:
 					return
 
 
-			self.say(f"No problem. Bringing you {NUM_ARTICLES} articles")
+			self.say(f"No problem. Bringing you {len(selectedNews)} articles")
 
 			for article in selectedNews:
 				article.download()

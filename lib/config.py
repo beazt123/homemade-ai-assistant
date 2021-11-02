@@ -4,6 +4,10 @@ from pvporcupine import KEYWORDS
 engineConfig = dict()
 engineConfig["MUSIC_PATH"] = os.path.join("D:\\","Music")
 
+newsConfig = dict()
+newsConfig["WEBSITE"] = "https://www.straitstimes.com/"
+newsConfig["NUM_ARTICLE"] = 5
+
 soundEffects = dict()
 soundsFolder = os.path.join("resources", "soundEffects")
 soundEffects["ready"] = os.path.join(soundsFolder, "done-trimmed-volboosted.wav")
@@ -14,6 +18,9 @@ soundEffects["positive"] = os.path.join(soundsFolder, "done.wav")
 soundEffects["switchOff"] = os.path.join(soundsFolder, "futuristic-door-open-trimmed.mp3")
 
 
+
+
+engineConfig["NEWS"] = newsConfig
 engineConfig["sounds"] = soundEffects
 
 readme = \
@@ -22,7 +29,7 @@ A.I general assistant
 ===========================
 Wake words:
 	Please say any 1 of the following words to wake the assistant:
-		{wakeWords}
+		{wakewords}
 		
 Command words:
 
@@ -61,4 +68,4 @@ Command words:
 		Shuts down the computer. Rmb to save your work!
 		I.e. "shut down computer!"
 
-""".format(wakeWords = ", \n\t\t".join(KEYWORDS))
+""".format(wakewords=", \n\t\t".join(KEYWORDS))

@@ -4,19 +4,17 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-pyaudio = {path = "./dependencies/PyAudio-0.2.11-cp39-cp39-win_amd64.whl"}
+pyaudio = {path = "./dependencies/PyAudio-0.2.11-cp36-cp36m-win_amd64.whl"}
+pocketsphinx = "*"
 speechrecognition = "*"
 pvporcupine = "*"
 pyjokes = "*"
 pyttsx3 = "*"
-pyglet = "*"
-playsound = "==1.2.2"
+playsound = "<=1.2.2"
 wikipedia = "*"
 newspaper3k = "*"
-joblib = "*"
-numpy = "*"
 
 [dev-packages]
 
 [requires]
-python_version = "3.9"
+python_version = "3.6"

@@ -49,11 +49,14 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 ## Misc
 ### Resources:
 - [Speech Recognition Recognizer documentation](https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst)
+- [PyAudio whl file repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
 
 
 
 ### Improvements
 - Create offline and online modes, use the offline transcriber
+	- If offline, use cache for results. Create an interface
+	- Enable offline transcription
 - Separate logging statements from bot responses as print statements
 - make it more OS independent(file system and playsound function)
 - If computer is playing audio && wake word is heard, lower computer volume temporarily
@@ -70,6 +73,9 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 #### CMD tool
 - Add file search function to CMD general tool assistant
 
+
+### Notes
+- Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
 
 ## Workflows
 - Google/Wiki/Youtube: <platform-name> <search statement>
