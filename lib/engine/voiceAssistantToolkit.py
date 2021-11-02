@@ -248,10 +248,7 @@ class Engine:
 			exit()
 		else:
 			logging.debug("Detected a search command")
-			if (queue := "what is") in command or (queue := "what's") in command or \
-				(queue := "who is") in command or (queue := "who's") in command:
-				sub_command = command.replace(queue,"").strip()
-			elif re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
+			if re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
 				sub_command = command.replace("wikipedia","").strip()
 				sub_command = sub_command.replace("wiki","").strip()
 			else:
@@ -259,6 +256,8 @@ class Engine:
 				return
 			try:
 				info = wikipedia.summary(sub_command, 2)
+				dedented_text = textwrap.dedent(info).strip()
+				print(textwrap.fill(dedented_text, width=80))
 				self.say(info)
 			except wikipedia.DisambiguationError:
 				logging.error("Wikipedia error")
