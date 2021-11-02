@@ -96,11 +96,13 @@ class Bot:
 	def transcribe(self, audio):
 		try:
 			command = self.recogniser.recognize_google(audio)
+			logging.debug("Using Google online transcription service")
 		except sr.RequestError:
 			logging.warning("Internet unavailable. Using offline TTS")
 			command = self.recogniser.recognize_sphinx(audio)
+			logging.debug("Using Sphinx offline transcription service")
 
-		logging.debug(command)
+		logging.info(command)
 		return command
 		
 class Engine:	
