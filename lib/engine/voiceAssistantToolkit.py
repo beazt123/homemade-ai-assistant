@@ -110,7 +110,7 @@ class Engine:
 		self.config = config
 		self.newsRecord = defaultdict(lambda : set())
 		self.musicProcess = None
-		# self.newsRecord["newspaper"] = newspaper.build(self.config["NEWS"]["WEBSITE"])
+		self.newsRecord["newspaper"] = newspaper.build(self.config["NEWS"]["WEBSITE"])
 	
 
 	def setMaleAI(self):
@@ -202,9 +202,9 @@ class Engine:
 			try:
 				selectedNews = random.sample(newNews, self.config["NEWS"]["NUM_ARTICLES"])
 			except ValueError:
-				selectedNews = random.sample(newNews, len(newNews))
+				selectedNews = newNews
 				if len(selectedNews) == 0:
-					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news. Why catch up with the news if all they have is bad news anyway")
+					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news")
 					return
 
 
@@ -226,8 +226,9 @@ class Engine:
 				print(textwrap.fill(dedented_text, width=80))
 
 				self.say(article.summary)
-				print(f"Source: {article.url}\n")
-				print(f"Video links: {article.movies}\n")
+				print(f"\nSource: {article.url}\n")
+				if len(article.movies) > 0:
+					print(f"Video links: {article.movies}\n")
 				
 
 				self.newsRecord["readBefore"].add(article.url)
