@@ -19,7 +19,6 @@ from collections import defaultdict
 from datetime import datetime
 from playsound import playsound
 from ..utils import playOnYoutube, googleSearchFor, playPlaylist, generateAllMusicFiles
-from ..constants import UNKNOWN_TOKEN, FAILED_TOKEN
 
 
 class WakeWordDetector:
@@ -51,70 +50,38 @@ class WakeWordDetector:
 		# self.porcupine.delete()
 		# print("Resources deleted")
 
-class Bot:
-	def __init__(self, name, mic, engine):
-		self.name = name
-		self.listener = mic
-		self.recogniser = sr.Recognizer()
-		self.engine = engine
-	
-	def __del__(self):
-		del self.name
-		del self.listener
-		del self.recogniser
-		del self.engine
-		
-	def adjust_for_ambient_noise(self):
-		logging.debug("Calibrating Mic")
-		with self.listener as source:
-			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
-		
-	def listen(self):
-		self.engine.readySoundEffect()
-		try:
-			with self.listener as source:
-				try:					
-					logging.info("Listening...")
-					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
-					logging.debug("Actually listening")
-					
-					logging.debug("Voice received")
-					command	= self.transcribe(voice)					
-					logging.debug("Transcribed voice")
-					command = command.strip().lower()
-					logging.debug(f"Detected command: {command}")
-				except sr.WaitTimeoutError:
-					logging.debug("User didn't speak")
-					command = FAILED_TOKEN
-				
-		except sr.UnknownValueError:
-			logging.info("Couldn't detect voice")
-			command = UNKNOWN_TOKEN
-			
-		self.engine.execute(command)
-		
-	def transcribe(self, audio):
-		try:
-			command = self.recogniser.recognize_google(audio)
-			logging.debug("Using Google online transcription service")
-		except sr.RequestError:
-			logging.warning("Internet unavailable. Using offline TTS")
-			command = self.recogniser.recognize_sphinx(audio)
-			logging.debug("Using Sphinx offline transcription service")
-
-		logging.info(command)
-		return command
-		
 class Engine:	
-	def __init__(self, config = dict()):
+	def __init__(self, systemConfig, userPreference = None):
 		self.voice = pyttsx3.init()
 		self.voice.setProperty("rate", 170)
-		self.config = config
+		
+		self.systemConfig = systemConfig
+		
 		self.newsRecord = defaultdict(lambda : set())
-		self.musicProcess = None
-		self.newsRecord["newspaper"] = newspaper.build(self.config["NEWS"]["WEBSITE"])
+		self.userPreference = userPreference
+		self._musicProcess = None
+		self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
+		
+		self.setUp()
+		
+	def setUp(self):
+		logging.debug(f"Loading {self.userPreference.AI_GENDER} AI")
+		self.set_gender(self.userPreference.AI_GENDER[0])
+		
+	def tearDown(self):
+		self.userPreference.save()
+		logging.info("Saving User Preferences")
+		if self._musicProcess != None:
+			self._musicProcess.terminate()
+			logging.debug("Terminated music process")
+		
+	def __del__(self):
+		self.tearDown()
 	
-
+	def formatForPPrint(self, longStr):
+		dedented_text = textwrap.dedent(longStr).strip()
+		return textwrap.fill(dedented_text, width=self.systemConfig.PRINTED_TEXT_WIDTH)
+	
 	def setMaleAI(self):
 		self.set_gender("m")
 	
@@ -129,16 +96,18 @@ class Engine:
 		voices = self.voice.getProperty('voices')
 		if gender.lower() == "m":
 			self.voice.setProperty('voice', voices[0].id)
+			self.userPreference.AI_GENDER = "male"
 		elif gender.lower() == "f":
 			self.voice.setProperty('voice', voices[1].id)
+			self.userPreference.AI_GENDER = "female"
 			
 	def readySoundEffect(self):
-		playsound(self.config["sounds"]["ready"], block = False) # non-blocking playback not supported for linux
+		playsound(self.systemConfig.ATTENTION_SOUND, block = False) # non-blocking playback not supported for linux
 
 	def execute(self, command):
-		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
+		if self.systemConfig.UNKNOWN_TOKEN in command or self.systemConfig.FAILED_TOKEN in command:
 			logging.info("Unknown or failed command detected")
-			playsound(self.config["sounds"]["atEase"], block = False)
+			playsound(self.systemConfig.AT_EASE_SOUND, block = False)
 		elif re.search("^shutdown.*(computer$|system$)", command):
 			logging.info("Shutting down system")
 			self.say("Alright. Shutting down your computer right now.")
@@ -153,7 +122,7 @@ class Engine:
 			self.say(f"Ok. Playing {video} on YouTube.")
 			playOnYoutube(video)
 		elif re.search("^play.*music$", command):
-			musicLibrary = self.config["MUSIC_PATH"]
+			musicLibrary = self.userPreference.PATH_TO_LOCAL_MUSIC_FOLDER
 			systemMusic = glob(os.path.join(musicLibrary, "*.mp3"))#os.listdir(musicLibrary)
 			
 			
@@ -169,40 +138,37 @@ class Engine:
 				
 				
 			logging.debug("Playing first song")
-			self.musicProcess = Process(target=playPlaylist, args=(playlist,))
-			self.musicProcess.daemon = True
+			self._musicProcess = Process(target=playPlaylist, args=(playlist,))
+			self._musicProcess.daemon = True
 			logging.debug("Created process to play music")
-			self.musicProcess.start()
+			self._musicProcess.start()
 			logging.debug("Started process to play music")
-			
 		elif re.search("^stop.*music$", command):
-			self.musicProcess.terminate()
-			del self.musicProcess
+			self._musicProcess.terminate()
+			del self._musicProcess
 			logging.debug("Terminated music process")
-			
-			
 		elif re.search("^google.*", command):
-			search = re.sub("google", "", command)
+			statement = re.sub("google", "", command)
 			self.say(f"OK. Searching for {search} on Google")
-			googleSearchFor(search)
+			googleSearchFor(statement)
 		elif re.search("^tell.*", command):
 			logging.debug("Detected 'tell' in command")
-			command = command.replace("?","")
 			if re.search(".*time$", command):
 				logging.debug("Detected 'time' in command")
 				time = datetime.now().strftime('%I:%M %p')
-				msg = 'Current time is ' + time
+				msg = f'Current time is {time}'
 				print(msg)
 				self.say(msg)
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
 				joke = pyjokes.get_joke()
+				#TODO: handle network erorr and cache jokes
 				print(joke)
 				self.say(joke)
 		elif re.search("(^news.*)|(.*news$)", command):
 			newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
 
 			try:
-				selectedNews = random.sample(newNews, self.config["NEWS"]["NUM_ARTICLES"])
+				selectedNews = random.sample(newNews, self.userPreference.NUM_ARTICLES_PER_NEWS_QUERY)
 			except ValueError:
 				selectedNews = newNews
 				if len(selectedNews) == 0:
@@ -224,8 +190,7 @@ class Engine:
 				print(f"Authors: {', '.join(article.authors)}\n")
 				self.say(article.title)
 				# print(f"Summary : {article.summary}\n")
-				dedented_text = textwrap.dedent(article.summary).strip()
-				print(textwrap.fill(dedented_text, width=80))
+				print(self.formatForPPrint(article.summary))
 
 				self.say(article.summary)
 				print(f"\nSource: {article.url}\n")
@@ -239,15 +204,15 @@ class Engine:
 		elif "female assistant" in command:
 			logging.debug("Detected 'a female assistant' in command")
 			self.setFemaleAI()
-			playsound(self.config["sounds"]["positive"])	
+			playsound(self.systemConfig.ATTENTION_SOUND)	
 		elif "male assistant" in command:
 			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
+			playsound(self.systemConfig.ATTENTION_SOUND)
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
 			logging.info("Exiting programme")
-			playsound(self.config["sounds"]["switchOff"])
-			del self
+			playsound(self.systemConfig.SWITCH_OFF_SOUND)
 			exit()
 		else:
 			logging.debug("Detected a search command")
@@ -259,8 +224,7 @@ class Engine:
 				return
 			try:
 				info = wikipedia.summary(sub_command, 2)
-				dedented_text = textwrap.dedent(info).strip()
-				print(textwrap.fill(dedented_text, width=80))
+				print(self.formatForPPrint(info))
 				self.say(info)
 			except wikipedia.DisambiguationError:
 				logging.error("Wikipedia error")
@@ -270,6 +234,67 @@ class Engine:
 				logging.error("Wikipedia error")
 				self.say(f"Sorry, there are no matching searches for {sub_command}")
 	
+
+
+
+class Bot:
+	def __init__(self, 
+			systemConfig = None, 
+			userPreference = None, 
+			mic = sr.Microphone()):
+		self.listener = mic
+		self.recogniser = sr.Recognizer()
+		self.engine = Engine(systemConfig, userPreference)
+	
+	def __del__(self):
+		try:
+			del self.listener
+			del self.recogniser
+			self.engine.tearDown()
+		except AttributeError:
+			pass
+		
+	def adjust_for_ambient_noise(self):
+		logging.debug("Calibrating Mic")
+		with self.listener as source:
+			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
+		
+	def listen(self):
+		self.engine.readySoundEffect()
+		try:
+			with self.listener as source:
+				try:					
+					logging.info("Listening...")
+					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
+					logging.debug("Actually listening")
+					
+					logging.debug("Voice received")
+					command	= self.transcribe(voice)					
+					logging.debug("Transcribed voice")
+					command = command.strip().lower()
+					logging.debug(f"Detected command: {command}")
+				except sr.WaitTimeoutError:
+					logging.info("User didn't speak")
+					command = FAILED_TOKEN
+				
+		except sr.UnknownValueError:
+			logging.info("Couldn't detect voice")
+			command = UNKNOWN_TOKEN
+			
+		self.engine.execute(command)
+		
+	def transcribe(self, audio):
+		try:
+			command = self.recogniser.recognize_google(audio)
+			logging.debug("Using Google online transcription service")
+		except sr.RequestError:
+			logging.warning("Internet unavailable. Using offline TTS")
+			command = self.recogniser.recognize_sphinx(audio)
+			logging.debug("Using Sphinx offline transcription service")
+
+		logging.info(command)
+		return command
+		
 
 if __name__ == "__main__":
 	from config import engineConfig
