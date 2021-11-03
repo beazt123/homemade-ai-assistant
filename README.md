@@ -36,10 +36,13 @@ Words in the square brackets are optional. It will search for music on your comp
 ### "*time [me the] time*"
 Self explanatory
 
+### "*news*"
+Reads you 5 articles from Straits times. Prints them on the command prompt.
+
 ### "*time [me a] joke*"
 Tells you a programming related joke. Only programming nerds can understand.
 
-### "*shut down computer/system*"
+### "*shutdown computer/system*"
 Self explanatory. Make sure you've ready saved your work.
 
 ### "*[Can I talk to] a male/female assistant?*"
@@ -57,16 +60,21 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - Create offline and online modes, use the offline transcriber
 	- If offline, use cache for results. Create an interface
 	- Enable offline transcription
-- Separate logging statements from bot responses as print statements
 - make it more OS independent(file system and playsound function)
 - If computer is playing audio && wake word is heard, lower computer volume temporarily
+- Store preferences, settings and system settings
+	- Preferences
+		- News articles
+		- Spotify credentials
+- Use NLP cosine similarity calculations to link command to underlying action
 
 ### Add-ons
 #### Voice assistant
+- Introduce caching of content downloaded from online. I.e. pyjokes. So that they can still run offline
 - Maybe incorporate [exrex](https://github.com/asciimoo/exrex) - A reverse Regex generator
-- howdoi
-- Have a general "entertain me" function
-- [Newspaper](https://github.com/codelucas/newspaper) to get summarised news from news platforms
+- Spotify API: use input() if not credentials not found in cache/config
+- Introduce states using smach
+- Dictionary function
 
 
 
@@ -76,6 +84,14 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 
 ### Notes
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
+
+#### Config mgmt
+- 4 principles of config mgmt
+	- Static
+	- Use literals not string keys
+	- Define them close to where they are used
+	- Early validation
+	
 
 ## Workflows
 - Google/Wiki/Youtube: <platform-name> <search statement>
