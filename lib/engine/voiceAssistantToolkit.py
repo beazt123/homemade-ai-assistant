@@ -1,5 +1,6 @@
 import re
 import os
+import json
 import pyaudio
 import random
 import struct
@@ -11,13 +12,15 @@ import wikipedia
 import pyjokes
 import pyttsx3
 import newspaper
+from PyDictionary import PyDictionary
+from nltk import sent_tokenize
+
 from multiprocessing import Process
 from glob import glob
 from collections import defaultdict
-
-
 from datetime import datetime
 from playsound import playsound
+
 from ..utils import playOnYoutube, googleSearchFor, playPlaylist, generateAllMusicFiles
 
 
@@ -52,21 +55,32 @@ class WakeWordDetector:
 
 class Engine:	
 	def __init__(self, systemConfig, userPreference = None):
-		self.voice = pyttsx3.init()
-		self.voice.setProperty("rate", 170)
+		self.newsRecord = defaultdict(lambda : set())
+		
 		
 		self.systemConfig = systemConfig
-		
-		self.newsRecord = defaultdict(lambda : set())
 		self.userPreference = userPreference
+		
+		
+		self._onlineEngDict = PyDictionary()
+		self._offlineEngDict = None
 		self._musicProcess = None
-		self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
+		self._voice = pyttsx3.init()
+		self._voice.setProperty("rate", 170)
+		
 		
 		self.setUp()
+		playsound(self.systemConfig.LEVEL_UP_SOUND, block = False)
 		
 	def setUp(self):
 		logging.debug(f"Loading {self.userPreference.AI_GENDER} AI")
 		self.set_gender(self.userPreference.AI_GENDER[0])
+		
+		
+		self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
+		
+		with open(self.systemConfig.JSON_DICTIONARY_NAME) as f:
+			self._offlineEngDict = json.load(f)
 		
 	def tearDown(self):
 		self.userPreference.save()
@@ -78,9 +92,9 @@ class Engine:
 	def __del__(self):
 		self.tearDown()
 	
-	def formatForPPrint(self, longStr):
-		dedented_text = textwrap.dedent(longStr).strip()
-		return textwrap.fill(dedented_text, width=self.systemConfig.PRINTED_TEXT_WIDTH)
+	def formatForPPrint(self, longStr, indent = ""):
+		paragraphed = textwrap.fill(longStr.strip(), width=self.systemConfig.PRINTED_TEXT_WIDTH)
+		return textwrap.indent(paragraphed, prefix=indent)
 	
 	def setMaleAI(self):
 		self.set_gender("m")
@@ -89,16 +103,16 @@ class Engine:
 		self.set_gender("f")
 
 	def say(self, command):
-		self.voice.say(command)
-		self.voice.runAndWait()
+		self._voice.say(command)
+		self._voice.runAndWait()
 	
 	def set_gender(self, gender):
-		voices = self.voice.getProperty('voices')
+		voices = self._voice.getProperty('voices')
 		if gender.lower() == "m":
-			self.voice.setProperty('voice', voices[0].id)
+			self._voice.setProperty('voice', voices[0].id)
 			self.userPreference.AI_GENDER = "male"
 		elif gender.lower() == "f":
-			self.voice.setProperty('voice', voices[1].id)
+			self._voice.setProperty('voice', voices[1].id)
 			self.userPreference.AI_GENDER = "female"
 			
 	def readySoundEffect(self):
@@ -148,9 +162,46 @@ class Engine:
 			del self._musicProcess
 			logging.debug("Terminated music process")
 		elif re.search("^google.*", command):
-			statement = re.sub("google", "", command)
+			statement = re.sub("google", "", command).strip()
 			self.say(f"OK. Searching for {search} on Google")
 			googleSearchFor(statement)
+			
+		elif re.search("^define", command):
+			statement = re.sub("define", "", command).strip().split()
+			lookUpWord = statement[0]
+			onlineSearchResult = self._onlineEngDict.meaning(lookUpWord)
+			wordToPrint = f"WORD: {lookUpWord}"
+			print(wordToPrint)
+			print("=" * len(f"WORD: {lookUpWord}\n"))
+			self.say(lookUpWord)
+			
+			if onlineSearchResult == None:
+				logging.warn("Word not found in dictionary or internet connection is down. Reverting to offline dictionary")
+				offlineSearchResult = self._offlineEngDict.get(lookUpWord, None)
+				
+				if offlineSearchResult == None:
+					logging.info("Word not found in offline and online dictionary")
+					self.say("Your England very the powderful. Too powderful for me to find")
+					
+				script = sent_tokenize(meaningOfWord)
+				print(self.formatForPPrint(meaningOfWord))
+				self.say(script)
+			
+			for category, meanings in onlineSearchResult.items():
+				print(f"{category}:")
+				self.say(category)
+				
+				counter = 0
+				
+				for meaning in meanings:
+					print(self.formatForPPrint(f"- {meaning}", indent="\t"))
+					self.say(meaning)
+					
+					if counter > 5:
+						break
+				
+				print()
+			
 		elif re.search("^tell.*", command):
 			logging.debug("Detected 'tell' in command")
 			if re.search(".*time$", command):
@@ -204,11 +255,11 @@ class Engine:
 		elif "female assistant" in command:
 			logging.debug("Detected 'a female assistant' in command")
 			self.setFemaleAI()
-			playsound(self.systemConfig.ATTENTION_SOUND)	
+			playsound(self.systemConfig.QUICK_PROCESSING_SOUND)	
 		elif "male assistant" in command:
 			logging.debug("Detected 'a male assistant' in command")
 			self.setMaleAI()
-			playsound(self.systemConfig.ATTENTION_SOUND)
+			playsound(self.systemConfig.QUICK_PROCESSING_SOUND)
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.debug("Detected 'goodbye' or 'bye' in command")
 			logging.info("Exiting programme")
@@ -244,6 +295,7 @@ class Bot:
 			mic = sr.Microphone()):
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
+		self.systemConfig = systemConfig # only for the unknown and failed tokens.
 		self.engine = Engine(systemConfig, userPreference)
 	
 	def __del__(self):
@@ -275,11 +327,11 @@ class Bot:
 					logging.debug(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
 					logging.info("User didn't speak")
-					command = FAILED_TOKEN
+					command = self.systemConfig.FAILED_TOKEN
 				
 		except sr.UnknownValueError:
 			logging.info("Couldn't detect voice")
-			command = UNKNOWN_TOKEN
+			command = self.systemConfig.UNKNOWN_TOKEN
 			
 		self.engine.execute(command)
 		

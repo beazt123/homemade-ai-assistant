@@ -53,29 +53,27 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 ### Resources:
 - [Speech Recognition Recognizer documentation](https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst)
 - [PyAudio whl file repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
-
+- [Python caching tool](https://towardsdatascience.com/how-to-speed-up-your-python-code-with-caching-c1ea979d0276)
 
 
 ### Improvements
-- Create offline and online modes, use the offline transcriber
-	- If offline, use cache for results. Create an interface
-	- Enable offline transcription
 - make it more OS independent(file system and playsound function)
 - If computer is playing audio && wake word is heard, lower computer volume temporarily
 - Store preferences, settings and system settings
 	- Preferences
 		- News articles
 		- Spotify credentials
+		- wait time and phrase time limit
 - Use NLP cosine similarity calculations to link command to underlying action
 
 ### Add-ons
 #### Voice assistant
-- Introduce caching of content downloaded from online. I.e. pyjokes. So that they can still run offline
 - Maybe incorporate [exrex](https://github.com/asciimoo/exrex) - A reverse Regex generator
-- Spotify API: use input() if not credentials not found in cache/config
+
 - Introduce states using smach
 - Dictionary function
-
+- Pafy library for youtube
+- Weather
 
 
 #### CMD tool
@@ -84,7 +82,10 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 
 ### Notes
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
-
+- Spotify API: use input() if not credentials not found in cache/config
+	- Shelved: Auth needed and only premium users get to stream content
+	
+	
 #### Config mgmt
 - 4 principles of config mgmt
 	- Static
@@ -103,6 +104,5 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 
 
 ### Special(Custom) Interfaces
-- What's/Who's <thing>: Performs Wiki search
 - Play <video> on Youtube: Play 1st vidoe that comes up in youtube search results in a default web browser.
-- 
+- Tell me something funny: Tells you a joke

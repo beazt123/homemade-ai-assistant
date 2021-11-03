@@ -32,7 +32,7 @@ def main():
 	while True:
 		try:
 			bot.adjust_for_ambient_noise()
-			print("Ready")
+			print("\nReady")
 			agent.waitForWakeWord()
 			bot.listen()
 		except KeyboardInterrupt:
