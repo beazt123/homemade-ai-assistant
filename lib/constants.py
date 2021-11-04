@@ -1,5 +1,8 @@
 from pvporcupine import KEYWORDS
 
+UNKNOWN_TOKEN = "!UNK"
+FAILED_TOKEN = "!FAILED"
+
 readme = \
 """
 A.I general assistant
@@ -25,8 +28,13 @@ Command words:
 			say "stop the music" or
 			say "stop playing the music"
 			
-	GIMME THE LATEST NEWS:
+	... NEWS ...:
 		Brings you summaries of the top 5 articles from a specified news site
+		
+	DEFINE <word>:
+		Gives you the dictionary definition of a single word. 
+		Works both offline and online.
+		I.e. "Define apprehensive"
 		
 	TELL...TIME / JOKE:
 		Tells you a joke or the time
@@ -46,3 +54,7 @@ Command words:
 		I.e. "shut down computer!"
 
 """.format(wakewords=", \n\t\t".join(KEYWORDS))
+
+
+
+

@@ -15,15 +15,6 @@ class SystemConfig(Config):
 				self.config["CONSTANTS"]["RESOURCE_FOLDER_NAME"], 
 				self.config["CONSTANTS"]["ENGLISH_DICTIONARY_FOLDER"])
 		
-
-	@property
-	def UNKNOWN_TOKEN(self):
-		return self.config["CONSTANTS"]["UNKNOWN_TOKEN"]
-		
-	@property
-	def FAILED_TOKEN(self):
-		return self.config["CONSTANTS"]["FAILED_TOKEN"]
-		
 	@property
 	def MODE(self):
 		mode = self.config.get("DEVELOPMENT","DEPLOYMENT_MODE", fallback="production")

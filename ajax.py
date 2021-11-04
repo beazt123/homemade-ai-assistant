@@ -1,11 +1,12 @@
 import os
 import logging
 import warnings
+from speech_recognition import Microphone as computerMic
 from configparser import ConfigParser
 from lib.constants import readme
 from lib.engine.systemconfigapi import SystemConfig
 from lib.engine.userpreferencesapi import UserPreferences
-from lib.engine.voiceAssistantToolkit import WakeWordDetector, Bot
+from lib.engine.voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 
 def main():
@@ -27,7 +28,8 @@ def main():
 	print(readme)
 	
 	agent = WakeWordDetector()
-	bot = Bot(systemConfig, userConfig)
+	engine = Engine(systemConfig, userConfig)
+	bot = Bot(computerMic(), engine)
 	
 	while True:
 		try:

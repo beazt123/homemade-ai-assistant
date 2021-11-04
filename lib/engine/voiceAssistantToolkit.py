@@ -21,6 +21,7 @@ from collections import defaultdict
 from datetime import datetime
 from playsound import playsound
 
+from ..constants import FAILED_TOKEN, UNKNOWN_TOKEN
 from ..utils import playOnYoutube, googleSearchFor, playPlaylist, generateAllMusicFiles
 
 
@@ -77,7 +78,7 @@ class Engine:
 		self.set_gender(self.userPreference.AI_GENDER[0])
 		
 		
-		self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
+		# self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
 		
 		with open(self.systemConfig.JSON_DICTIONARY_NAME) as f:
 			self._offlineEngDict = json.load(f)
@@ -119,7 +120,7 @@ class Engine:
 		playsound(self.systemConfig.ATTENTION_SOUND, block = False) # non-blocking playback not supported for linux
 
 	def execute(self, command):
-		if self.systemConfig.UNKNOWN_TOKEN in command or self.systemConfig.FAILED_TOKEN in command:
+		if UNKNOWN_TOKEN in command or FAILED_TOKEN in command:
 			logging.info("Unknown or failed command detected")
 			playsound(self.systemConfig.AT_EASE_SOUND, block = False)
 		elif re.search("^shutdown.*(computer$|system$)", command):
@@ -183,8 +184,10 @@ class Engine:
 					logging.info("Word not found in offline and online dictionary")
 					self.say("Your England very the powderful. Too powderful for me to find")
 					
-				script = sent_tokenize(meaningOfWord)
-				print(self.formatForPPrint(meaningOfWord))
+				script = sent_tokenize(offlineSearchResult)
+				offlineSearchResult = re.sub("[0-9].", "\n- ", offlineSearchResult)
+				offlineSearchResult = re.sub(";", "\n\t- ", offlineSearchResult)
+				print(offlineSearchResult)
 				self.say(script)
 			
 			for category, meanings in onlineSearchResult.items():
@@ -216,6 +219,14 @@ class Engine:
 				print(joke)
 				self.say(joke)
 		elif re.search("(^news.*)|(.*news$)", command):
+			if self.newsRecord["newspaper"] == set():
+				logging.info("Lazy loading newspaper articles")
+				self.newsRecord["newspaper"] = newspaper.build(self.userPreference.NEWS_WEBSITE)
+				if len(self.newsRecord["newspaper"].articles) == 0:
+					logging.error("Could not load the newspaper articles")
+					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news")
+					return
+					
 			newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
 
 			try:
@@ -223,9 +234,8 @@ class Engine:
 			except ValueError:
 				selectedNews = newNews
 				if len(selectedNews) == 0:
-					self.say("The online news website may have blocked my request. So I'm unable to query for the latest news")
-					return
-
+					self.say("I have no more news for today")
+					return			
 
 			self.say(f"No problem. Bringing you {len(selectedNews)} articles")
 
@@ -241,7 +251,7 @@ class Engine:
 				print(f"Authors: {', '.join(article.authors)}\n")
 				self.say(article.title)
 				# print(f"Summary : {article.summary}\n")
-				print(self.formatForPPrint(article.summary))
+				print(self.formatForPPrint(article.summary, indent="\t"))
 
 				self.say(article.summary)
 				print(f"\nSource: {article.url}\n")
@@ -289,14 +299,10 @@ class Engine:
 
 
 class Bot:
-	def __init__(self, 
-			systemConfig = None, 
-			userPreference = None, 
-			mic = sr.Microphone()):
+	def __init__(self, mic, engine):
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
-		self.systemConfig = systemConfig # only for the unknown and failed tokens.
-		self.engine = Engine(systemConfig, userPreference)
+		self.engine = engine
 	
 	def __del__(self):
 		try:
@@ -327,11 +333,11 @@ class Bot:
 					logging.debug(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
 					logging.info("User didn't speak")
-					command = self.systemConfig.FAILED_TOKEN
+					command = FAILED_TOKEN
 				
 		except sr.UnknownValueError:
 			logging.info("Couldn't detect voice")
-			command = self.systemConfig.UNKNOWN_TOKEN
+			command = UNKNOWN_TOKEN
 			
 		self.engine.execute(command)
 		
