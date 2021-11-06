@@ -1,4 +1,6 @@
 __pycache__
 
 **/*.pdf
-
+test.py
+lib/config-files/config.ini
+resources/english-dictionary/dictionary.json
