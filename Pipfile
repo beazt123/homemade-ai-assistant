@@ -17,6 +17,8 @@ cachetools = "*"
 spotipy = "*"
 pydictionary = "*"
 nltk = "*"
+pydispatcher = "*"
+setuptools = "==45.2.0"
 
 [dev-packages]
 

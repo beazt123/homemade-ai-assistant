@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "551d31556c3af22dc7c5941cfaf0fbf9d1b0c929c79f58a9c741d7ee185a1079"
+            "sha256": "089ba341b22f8111261decd3262fa973fb2e075a69889bfc134388b4d1633808"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -23,6 +23,12 @@
             ],
             "markers": "python_version >= '3.1'",
             "version": "==4.10.0"
+        },
+        "bs4": {
+            "hashes": [
+                "sha256:36ecea1fd7cc5c0c6e4a1ff075df26d50da647b75376626cc186e2212886dd3a"
+            ],
+            "version": "==0.0.1"
         },
         "cachetools": {
             "hashes": [
@@ -107,6 +113,20 @@
             ],
             "markers": "python_version >= '3.6'",
             "version": "==3.3.2"
+        },
+        "futures": {
+            "hashes": [
+                "sha256:0542525145d5afc984c88f914a0c85c77527f65946617edb5274f72406f981df",
+                "sha256:f7f16b6bf9653a918a03f1f2c2d62aac0cd64b1bc088e93ea279517f6b61120b"
+            ],
+            "version": "==3.0.5"
+        },
+        "goslate": {
+            "hashes": [
+                "sha256:c9b7855f0984ae5012b8b8f06511e81ba197ec7b634756413b2f503554c535aa",
+                "sha256:dee7cf08fd7d744fbb3477d28ea6a98a11b363c138d7577b4b097f517581f864"
+            ],
+            "version": "==1.5.1"
         },
         "idna": {
             "hashes": [
@@ -217,7 +237,7 @@
                 "sha256:834d1a8e38496369390be699be9bca4f2a0f2175b50327272b2ec7a98ffda2a0",
                 "sha256:95fb4f577efe93af21765e9b2852235c2c6a405885da2a70f397478d94e906e0"
             ],
-            "markers": "python_version >= '3.6'",
+            "index": "pypi",
             "version": "==3.6.5"
         },
         "numpy": {
@@ -364,6 +384,22 @@
             ],
             "path": "./dependencies/PyAudio-0.2.11-cp36-cp36m-win_amd64.whl",
             "version": "==0.2.11"
+        },
+        "pydictionary": {
+            "hashes": [
+                "sha256:95b91cf26cc9d859f6c76be2a8c0d864819d4826f21f1709619bda02a3b4e1dc",
+                "sha256:c250815c238ec042098918764e5b743955df9612a129ae5218d5f37ddd0f9634"
+            ],
+            "index": "pypi",
+            "version": "==2.0.1"
+        },
+        "pydispatcher": {
+            "hashes": [
+                "sha256:5570069e1b1769af1fe481de6dd1d3a388492acddd2cdad7a3bde145615d5caf",
+                "sha256:5be4a8be12805ef7d712dd9a93284fb8bc53f309867e573f653a72e5fd10e433"
+            ],
+            "index": "pypi",
+            "version": "==2.0.5"
         },
         "pyjokes": {
             "hashes": [
@@ -536,11 +572,11 @@
         },
         "soupsieve": {
             "hashes": [
-                "sha256:052774848f448cf19c7e959adf5566904d525f33a3f8b6ba6f6f8f26ec7de0cc",
-                "sha256:c2c1c2d44f158cdbddab7824a9af8c4f83c76b1e23e049479aa432feb6c4c23b"
+                "sha256:617ffc4d0dfd39c66f4d1413a6e165663a34eca86be9b54f97b91756300ff6df",
+                "sha256:e4860f889dfa88774c07da0b276b70c073b6470fa1a4a8350800bb7bce3dcc76"
             ],
             "markers": "python_version >= '3.6'",
-            "version": "==2.2.1"
+            "version": "==2.3"
         },
         "speechrecognition": {
             "hashes": [
