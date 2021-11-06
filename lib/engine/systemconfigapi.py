@@ -14,6 +14,7 @@ class SystemConfig(Config):
 		self.path_to_dictionaries = os.path.join(
 				self.config["CONSTANTS"]["RESOURCE_FOLDER_NAME"], 
 				self.config["CONSTANTS"]["ENGLISH_DICTIONARY_FOLDER"])
+		self.appid = ""
 		
 	@property
 	def MODE(self):
@@ -70,4 +71,49 @@ class SystemConfig(Config):
 		return os.path.join(
 				self.path_to_dictionaries, 
 				self.config["RESOURCES"]["JSON_DICTIONARY_NAME"])
+	
+	@property
+	def PATH_TO_POWERSHELL(self):
+		return self.config["CONSTANTS"]["PATH_TO_POWERSHELL"]
+	
+	@property
+	def POWERSHELL_STARTING_DIR(self):
+		return self.config["CONSTANTS"]["POWERSHELL_STARTING_DIR"]
+	
+	@property
+	def WEATHER_API_BASE_URL(self):
+		return self.config.get("WEATHER", "WEATHER_API_BASE_URL", fallback = "https://api.openweathermap.org/data/2.5/onecall")
+	
+	@property
+	def WEATHER_QUERY_PARAMS(self):
+		return {
+			'lat': self.LAT, 
+			'lon': self.LON, 
+			"appid": self.APPID,
+			"units": "metric"
+			}
 		
+	
+	@property
+	def LAT(self):
+		return self.config.getfloat("WEATHER", "LAT", fallback = 1.2897)
+	
+	@property
+	def LON(self):
+		return self.config.getfloat("WEATHER", "LON", fallback = 103.8501)
+		
+	@property
+	def UNITS(self):
+		return self.config.get("WEATHER", "UNITS", fallback = "metric")	
+	
+	
+	@property
+	def APPID(self):
+		return self.appid
+		
+	@APPID.setter
+	def APPID(self, value):
+		self.appid = value
+		
+	
+	
