@@ -182,7 +182,8 @@ class Engine:
 				self.say(f"Sorry, there are no matching searches for {sub_command}")
 		elif re.search("^google.*", command):
 			statement = re.sub("google", "", command).strip()
-			self.say(f"OK. Searching for {statement} on Google")			
+			self.say(f"OK. Searching for {statement} on Google")
+			googleSearchFor(statement)
 		elif re.search("^define", command):
 			statement = re.sub("define", "", command).strip().split()
 			lookUpWord = statement[0]
