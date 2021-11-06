@@ -10,8 +10,16 @@ from lib.engine.voiceAssistantToolkit import WakeWordDetector, Bot, Engine
 
 
 def main():
+
+	pathToApiConfig = os.path.join("lib", "config-files", "config.ini")
+	api = ConfigParser()
+	api.read(pathToApiConfig)
+	weather_api_key = api.get("WEATHER", "API_KEY")
+	
+	
 	pathToSysConfig = os.path.join("lib", "config-files", "sysconfig.ini")
 	systemConfig = SystemConfig(pathToSysConfig)
+	systemConfig.APPID = weather_api_key
 	
 	pathToUserConfig = os.path.join("lib", "config-files", "userconfig.ini")
 	userConfig = UserPreferences(pathToUserConfig)

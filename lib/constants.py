@@ -28,6 +28,11 @@ Command words:
 			say "stop the music" or
 			say "stop playing the music"
 			
+	... WEATHER ...:
+		Gives you a 12 hr weather forecast in 3-hr blocks.
+		I.e. "Weather forecast" or
+			 "How's the weather today?"
+			
 	... NEWS ...:
 		Brings you summaries of the top 5 articles from a specified news site
 		

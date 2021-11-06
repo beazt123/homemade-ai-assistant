@@ -4,6 +4,7 @@ import json
 import pyaudio
 import random
 import struct
+import requests
 import logging
 import textwrap
 import pvporcupine
@@ -12,6 +13,8 @@ import wikipedia
 import pyjokes
 import pyttsx3
 import newspaper
+import subprocess
+import time
 from PyDictionary import PyDictionary
 from nltk import sent_tokenize
 
@@ -92,9 +95,10 @@ class Engine:
 		
 	def __del__(self):
 		self.tearDown()
-	
-	def formatForPPrint(self, longStr, indent = ""):
-		paragraphed = textwrap.fill(longStr.strip(), width=self.systemConfig.PRINTED_TEXT_WIDTH)
+		
+	def formatForPPrint(self, printStatements, indent = ""):
+		paragraphed = textwrap.fill(printStatements.strip(), 
+									width=self.systemConfig.PRINTED_TEXT_WIDTH)
 		return textwrap.indent(paragraphed, prefix=indent)
 	
 	def setMaleAI(self):
@@ -162,11 +166,23 @@ class Engine:
 			self._musicProcess.terminate()
 			del self._musicProcess
 			logging.debug("Terminated music process")
+		elif re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
+			sub_command = command.replace("wikipedia","").strip()
+			sub_command = sub_command.replace("wiki","").strip()
+			try:
+				info = wikipedia.summary(sub_command, 2)
+				print(self.formatForPPrint(info))
+				self.say(info)
+			except wikipedia.DisambiguationError:
+				logging.error("Wikipedia error")
+				self.say("Sorry, there were quite many possible searches. \
+					Mind if you be more specific in your search terms? Thanks!")
+			except wikipedia.exceptions.PageError:
+				logging.error("Wikipedia error")
+				self.say(f"Sorry, there are no matching searches for {sub_command}")
 		elif re.search("^google.*", command):
 			statement = re.sub("google", "", command).strip()
-			self.say(f"OK. Searching for {search} on Google")
-			googleSearchFor(statement)
-			
+			self.say(f"OK. Searching for {statement} on Google")			
 		elif re.search("^define", command):
 			statement = re.sub("define", "", command).strip().split()
 			lookUpWord = statement[0]
@@ -204,13 +220,17 @@ class Engine:
 						break
 				
 				print()
-			
+		elif re.search("terminal$|(command prompt)$|(command line)$", command):
+			self.say("Right away")
+			logging.info("Launching terminal")
+			subprocess.call(f'start {self.systemConfig.PATH_TO_POWERSHELL}', shell=True)
+			logging.debug("Launched terminal")
 		elif re.search("^tell.*", command):
 			logging.debug("Detected 'tell' in command")
 			if re.search(".*time$", command):
 				logging.debug("Detected 'time' in command")
-				time = datetime.now().strftime('%I:%M %p')
-				msg = f'Current time is {time}'
+				timeNow = datetime.now().strftime('%I:%M %p')
+				msg = f'Current time is {timeNow}'
 				print(msg)
 				self.say(msg)
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
@@ -247,8 +267,17 @@ class Engine:
 				article.nlp()
 				logging.debug("NLP article")
 
-				print(f"Title : {article.title}\n")
-				print(f"Authors: {', '.join(article.authors)}\n")
+				title = f"Title : {article.title}"
+				print(title)
+				print("=" * len(title))
+				
+				if len(article.authors) > 0:
+					authors = article.authors
+					authors = ', '.join(authors)
+				else:
+					authors = "UNKNOWN"
+				print(f"Authors: {authors}\n")
+				
 				self.say(article.title)
 				# print(f"Summary : {article.summary}\n")
 				print(self.formatForPPrint(article.summary, indent="\t"))
@@ -275,26 +304,52 @@ class Engine:
 			logging.info("Exiting programme")
 			playsound(self.systemConfig.SWITCH_OFF_SOUND)
 			exit()
-		else:
-			logging.debug("Detected a search command")
-			if re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
-				sub_command = command.replace("wikipedia","").strip()
-				sub_command = sub_command.replace("wiki","").strip()
+		elif re.search("weather", command):
+			r = requests.get(self.systemConfig.WEATHER_API_BASE_URL, 
+					params = self.systemConfig.WEATHER_QUERY_PARAMS)
+			
+			# getting the main dict block
+			if r.status_code == 200:
+				data = r.json()
+				hourlyWeather = data['hourly']
+				now = time.time()
+				hr = 3600
+				title = "Weather Forecast"
+				print(title)
+				print("=" * len(title))
+				for hoursLater in range(0, 13, 3):
+					laterTimeStamp = now + hoursLater * hr
+					later = list(filter(lambda x : x["dt"] > laterTimeStamp, hourlyWeather))[0]
+					formattedTimeLater = datetime.fromtimestamp(laterTimeStamp).strftime('%I:%M %p')
+					
+					print(formattedTimeLater)
+					self.say(f"Weather at {formattedTimeLater}")
+					
+					apparentTemperature = round(later["feels_like"], 1)
+					desc = later["weather"][0]["description"].title()
+					humidity = later['humidity']
+					
+					logging.debug(f"apparentTemperature: {apparentTemperature}")
+					
+					announcementScript = "\n".join([
+							f'{desc}',
+							f"Apparent temperature at {apparentTemperature} degrees Celsius",
+							f"Humidity at {humidity} percent"				
+							])
+					announcementPrintStmt = announcementScript.replace("Celsius", "C").replace(" degrees", "").replace("percent", "%").replace(" at", ":")
+					
+					logging.debug(f"announcementPrintStmt: {announcementPrintStmt}")
+					
+					print(textwrap.indent(announcementPrintStmt, prefix="\t"))		
+					self.say(announcementScript)
+					
+			elif r.status_code == 401:
+				self.say("Sorry, no authentication provided. I couldn't log in.")
 			else:
-				self.say("Sorry, I don't understand that command.")
-				return
-			try:
-				info = wikipedia.summary(sub_command, 2)
-				print(self.formatForPPrint(info))
-				self.say(info)
-			except wikipedia.DisambiguationError:
-				logging.error("Wikipedia error")
-				self.say("Sorry, there were quite many possible searches. \
-					Mind if you be more specific in your search terms? Thanks!")
-			except wikipedia.exceptions.PageError:
-				logging.error("Wikipedia error")
-				self.say(f"Sorry, there are no matching searches for {sub_command}")
-	
+				self.say("Why don't stick your head out the window?")
+		else:
+			self.say("Sorry, I don't understand that command.")
+			return
 
 
 
@@ -354,41 +409,4 @@ class Bot:
 		return command
 		
 
-if __name__ == "__main__":
-	from config import engineConfig
-	from time import sleep
-	from playsound import playsound
-	import os
-	musicLibrary = engineConfig["MUSIC_PATH"]
-	systemMusic = os.listdir(musicLibrary)
-	music = systemMusic[0]
-	path2song = musicLibrary + "\\" + music
-	print(path2song)
-	song = pyglet.media.load(path2song)
-	player = pyglet.media.Player()
-	player.queue(song)
-	
-	player.play()
-	sleep(300)	
-
-		# elif re.search("(^news|news$)|(newspaper)", command):
-		# 	url='https://www.straitstimes.com/'
-		# 	numArticles = 2
-			
-		# 	paper = newspaper.build(url)
-		# 	logging.debug("Starting articles download")
-		# 	for article in paper.articles[:numArticles]:
-		# 		article.download()
-		# 		logging.debug("Downloaded article")
-		# 		article.parse()
-		# 		logging.debug("Parsed article")
-		# 		article.nlp()
-		# 		logging.debug("NLP-ed article")
-
-		# 		print(f"Title : {article.title}\n")
-		# 		print(f"Authors: {article.authors}\n")
-		# 		print(f"Summary : {article.summary}\n")
-		# 		print(f"Video links : {article.movies}\n")
-		# 		print(f"Article links : {article.url}")
-		# 		# print(f"Keywords : {article.keywords}\n")
 		
