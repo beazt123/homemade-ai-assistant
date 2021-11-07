@@ -63,10 +63,11 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - [Rasa Python API](http://35.196.60.7/docs/nlu/0.14.5/python/)
 - [How to fix - Python 3.6 contains broken python 2 concurrent futures packages](https://stackoverflow.com/questions/54338270/syntax-error-after-installing-futures-package-in-my-virtualenv)
 	- Downgrade setuptools to 45.2.0
+- [How to build an event system implementing Observer pattern](https://dev.to/kuba_szw/build-your-own-event-system-in-python-5hk6)
 
 ### Improvements
 - make it more OS independent(file system and playsound function)
-- If computer is playing audio && wake word is heard, lower computer volume temporarily
+- If computer is playing audio && wake word is heard, lower computer volume temporarily(will make it more windows OS oriented)
 - Store preferences, settings and system settings
 	- Preferences
 		- News articles
@@ -74,9 +75,9 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 		- wait time and phrase time limit
 		- AI talking speed
 - Use NLP cosine similarity calculations to link command to underlying action
-- Try to play the AI response asynchronously
 - Adjust for ambient noise only when needed
 - Sort the music into genres
+- Get the engine to refresh the new userPreferences unto the current settings. User preference not updating.
 
 
 ### Add-ons
@@ -85,7 +86,6 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 
 - Introduce states using smach
 - Pafy library for youtube
-- Weather
 - User analytics
 	- To adjust the timeout, phrase timeout, etc
 
@@ -105,17 +105,3 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 	- Use literals not string keys
 	- Define them close to where they are used
 	- Early validation
-	
-
-## Workflows
-- Google/Wiki/Youtube: <platform-name> <search statement>
-- News: say "Give me the latest news"
-- Offline Music: play some music
-- Time/Quick Programming Joke/Change AI gender
-- Terminate programme
-- Shutdown computer
-
-
-### Special(Custom) Interfaces
-- Play <video> on Youtube: Play 1st vidoe that comes up in youtube search results in a default web browser.
-- Tell me something funny: Tells you a joke

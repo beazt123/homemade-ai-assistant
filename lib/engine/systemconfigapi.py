@@ -25,6 +25,10 @@ class SystemConfig(Config):
 			return mode
 		
 	@property
+	def LOG_LEVEL(self):
+		return self.config.get("DEVELOPMENT","LOG_LEVEL", fallback="INFO")
+		
+	@property
 	def ATTENTION_SOUND(self):
 		return os.path.join(
 				self.path_to_sound_effects, 
