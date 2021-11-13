@@ -61,14 +61,15 @@ def main():
 	agent = WakeWordDetector()
 	engine = Engine(systemConfig, userConfig, enableVoiceResponses = True)
 	dispatcher = create_dispatcher(engine)
-	bot = Bot(computerMic(), dispatcher)
+	bot = Bot(computerMic())
 	
 	while True:
 		try:
 			bot.adjust_for_ambient_noise()
 			print("\nReady")
 			agent.waitForWakeWord()
-			bot.listen()
+			event, data = bot.listen()
+			dispatcher.emit(event, data)
 		except KeyboardInterrupt:
 			del bot
 			del agent

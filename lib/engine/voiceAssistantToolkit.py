@@ -237,6 +237,8 @@ class Engine:
 		
 	def updateOptions(self, data):
 		self.userPreference.update(data)
+		logging.debug(self.userPreference)
+		self.setUp()
 		
 	def weather(self, data):
 		r = requests.get(self.systemConfig.WEATHER_API_BASE_URL, 
@@ -337,10 +339,9 @@ class Engine:
 		self.say("That's all for now. Ping me again if you wanna hear more news of the day")
 
 class Bot:
-	def __init__(self, mic, dispatcher):
+	def __init__(self, mic):
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
-		self._dispatcher = dispatcher
 	
 	def __del__(self):
 		try:
@@ -356,7 +357,7 @@ class Bot:
 			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
 		
 	def listen(self):
-		self._dispatcher.emit("ready")
+		# self._dispatcher.emit("ready")
 		try:
 			with self.listener as source:
 				try:					
@@ -378,7 +379,8 @@ class Bot:
 			command = FAILED_TOKEN
 			
 		event, data = self.process(command)
-		self._dispatcher.emit(event, data)
+		
+		return event, data
 		
 	def transcribe(self, audio):
 		try:
@@ -391,11 +393,7 @@ class Bot:
 
 		logging.info(f"Transcription: {command}")
 		return command
-		
-	@property
-	def dispatcher(self):
-		return self._dispatcher
-		
+				
 	def process(self, command):
 		'''Break down the command into Event and data objects'''
 		# TODO: implement. This method should have all the if-else from Engine.execute
@@ -464,10 +462,10 @@ class Bot:
 			data = Options()
 			
 			if "female" in command:
-				data.AI_GENDER = "female"
+				data.AI_GENDER("female")
 			elif "male" in command:
-				data.AI_GENDER = "male"
-			logging.debug(f"AI gender set to {data.AI_GENDER}")
+				data.AI_GENDER("male")
+			logging.debug(f"Selected {data.AI_GENDER} AI")
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
 			logging.info("Detected 'goodbye' or 'bye' in command")
 			event = "shutdown"

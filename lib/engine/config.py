@@ -10,6 +10,14 @@ class Config:
 		else:
 			raise TypeError("fp must be a path to the INI file")
 			
+	def __str__(self):
+		output = ""
+		for section, proxy in self.config.items():
+			output += "\n" + section
+			for key, value in proxy.items():
+				output += f"\t{key}: {value}\n"
+		return output
+			
 			
 	def save(self):
 		configType = type(self)
