@@ -66,6 +66,22 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - [How to build an event system implementing Observer pattern](https://dev.to/kuba_szw/build-your-own-event-system-in-python-5hk6)
 
 ### Improvements
+#### Current phase
+- Do a git rebase
+- Replace config with dependency injected config: A config object in top level object. Passed into every object it is composed of.
+	- Each object implements FilterConfig interface where it chooses only appropriate config. No longer hard coded object methods.
+	- Pass config object to receivers in the main methods
+	- [*] Use config to choose what receivers to instantiate
+- Implement Command design pattern
+- Implement Publisher interface with only /local topic enabled
+- Have a voice Receiver object which is called by other Receivers
+
+#### IOT phase
+- Test code on Linux system. See if feasible and make it OS independent
+- Create MQTT related class which implements Publisher.
+
+### Shelved
+#### Improvements
 - make it more OS independent(file system and playsound function)
 - If computer is playing audio && wake word is heard, lower computer volume temporarily(will make it more windows OS oriented)
 - Store preferences, settings and system settings
@@ -80,8 +96,8 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - Get the engine to refresh the new userPreferences unto the current settings. User preference not updating.
 
 
-### Add-ons
-#### Voice assistant
+#### Add-ons
+##### Voice assistant
 - Maybe incorporate [exrex](https://github.com/asciimoo/exrex) - A reverse Regex generator
 
 - Introduce states using smach
@@ -89,7 +105,7 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - User analytics
 	- To adjust the timeout, phrase timeout, etc
 
-#### CMD tool
+##### CMD tool
 - Add file search function to CMD general tool assistant
 
 
