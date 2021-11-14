@@ -64,20 +64,12 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - [How to fix - Python 3.6 contains broken python 2 concurrent futures packages](https://stackoverflow.com/questions/54338270/syntax-error-after-installing-futures-package-in-my-virtualenv)
 	- Downgrade setuptools to 45.2.0
 - [How to build an event system implementing Observer pattern](https://dev.to/kuba_szw/build-your-own-event-system-in-python-5hk6)
+- [How to read an uncompressed epub file](https://stackoverflow.com/questions/1388467/reading-epub-format)
 
 ### Improvements
-#### Current phase
-- Do a git rebase
-- Replace config with dependency injected config: A config object in top level object. Passed into every object it is composed of.
-	- Each object implements FilterConfig interface where it chooses only appropriate config. No longer hard coded object methods.
-	- Pass config object to receivers in the main methods
-	- [*] Use config to choose what receivers to instantiate
-- Implement Command design pattern
-- Implement Publisher interface with only /local topic enabled
-- Have a voice Receiver object which is called by other Receivers
-
 #### IOT phase
 - Test code on Linux system. See if feasible and make it OS independent
+- Implement Publisher interface with only /local topic enabled
 - Create MQTT related class which implements Publisher.
 
 ### Shelved
@@ -102,7 +94,6 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 - Maybe incorporate [exrex](https://github.com/asciimoo/exrex) - A reverse Regex generator
 
 - Introduce states using smach
-- Pafy library for youtube
 - User analytics
 	- To adjust the timeout, phrase timeout, etc
 

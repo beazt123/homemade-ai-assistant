@@ -1,9 +1,6 @@
 from pvporcupine import KEYWORDS
 
-UNKNOWN_TOKEN = "!UNK"
-FAILED_TOKEN = "!FAILED"
-
-readme = \
+README = \
 """
 A.I general assistant
 ===========================
