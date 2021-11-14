@@ -7,7 +7,7 @@ class PlayYoutubeVideo(Command):
 
     def __call__(self, searchStatement = None):
         if not self.arg:
-            return self.receiver.youtube(self.arg)
-        else:
             return self.receiver.youtube(searchStatement)
+        else:
+            return self.receiver.youtube(self.arg)
         

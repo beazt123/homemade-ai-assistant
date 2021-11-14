@@ -7,7 +7,7 @@ class GoogleSearch(Command):
 
     def __call__(self, searchStatement = None):
         if not self.arg:
-            return self.receiver.google(self.arg)
-        else:
             return self.receiver.google(searchStatement)
+        else:
+            return self.receiver.google(self.arg)
         

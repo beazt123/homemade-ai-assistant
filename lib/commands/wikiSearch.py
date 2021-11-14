@@ -7,7 +7,7 @@ class WikiSearch(Command):
 
     def __call__(self, searchStatement = None):
         if not self.arg:
-            return self.receiver.wiki(self.arg)
-        else:
             return self.receiver.wiki(searchStatement)
+        else:
+            return self.receiver.wiki(self.arg)
         
