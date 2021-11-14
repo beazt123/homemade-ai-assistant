@@ -1,6 +1,4 @@
 import logging
-import warnings
-
 import pyttsx3
 from speech_recognition import Microphone as computerMic
 
@@ -21,20 +19,33 @@ from ...commands import (
     TellAJoke,
     TellTime,
     WikiSearch
-    
-
 )
 
 speechEngine = pyttsx3.init()
 
 englishDictionary = Dictionary(config, speechEngine)
+logging.info(f"Created {Dictionary.__name__} ")
+
 generalReception = GeneralReceiver(config, speechEngine)
+logging.info(f"Created {GeneralReceiver.__name__} ")
+
 newsCaster = News(config, speechEngine)
+logging.info(f"Created {News.__name__} ")
+
 offlineMusicPlayer = OfflineMusic(config, speechEngine)
+logging.info(f"Created {OfflineMusic.__name__} ")
+
 searcher = Searcher(config, speechEngine)
+logging.info(f"Created {Searcher.__name__} ")
+
 systemInterface = System(config, speechEngine)
+logging.info(f"Created {System.__name__} ")
+
 weatherForecaster = Weather(config, speechEngine)
-fallbackReceiver = FallbackReceiver(config, speechEngine)
+logging.info(f"Created {Weather.__name__} ")
+
+fallbackReceiver = FallbackReceiver(config)
+logging.info(f"Created {FallbackReceiver.__name__} ")
 
 commandsToUse = [
     DefineWord(englishDictionary),
@@ -51,8 +62,6 @@ commandsToUse = [
     WikiSearch(searcher),
     DefaultCommand(fallbackReceiver)
 ]
-
-
 
 
 configuredInterpreter = Interpreter(config, computerMic())

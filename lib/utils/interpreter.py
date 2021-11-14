@@ -19,9 +19,10 @@ from lib.commands import (
 	DefaultCommand
 )
 
-from ..constants import FAILED_TOKEN
 
 class Interpreter(SoundEffectsMixin):
+	FAILED_TOKEN = "!FAILED"
+
 	def __init__(self, config, mic):
 		SoundEffectsMixin.__init__(self, config)
 		self.listener = mic
@@ -55,13 +56,14 @@ class Interpreter(SoundEffectsMixin):
 					logging.debug(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
 					logging.info("User didn't speak")
-					command = FAILED_TOKEN
+					command = Interpreter.FAILED_TOKEN
 				
 		except sr.UnknownValueError:
 			logging.info("Couldn't detect voice")
-			command = FAILED_TOKEN
+			command = Interpreter.FAILED_TOKEN
 			
 		event, data = self.interpret(command)
+		logging.info(f"Event: {event}, Data: {data}")
 		
 		return event, data
 		
@@ -79,8 +81,7 @@ class Interpreter(SoundEffectsMixin):
 				
 	def interpret(self, command):
 		'''Break down the command into Event and data objects'''
-		# TODO: implement. This method should have all the if-else from Engine.execute
-		# if possible NLP, NER should go into here as well
+		# TODO: if possible NLP, NER should go into here as well
 		event = None
 		data = None
 		if re.search("^shutdown.*(computer$|system$)", command):
@@ -126,7 +127,7 @@ class Interpreter(SoundEffectsMixin):
 			logging.info("Detected 'tell' in command")
 			if re.search(".*time$", command):
 				logging.info("Detected 'time' in command")
-				data = TellTime.__name__
+				event = TellTime.__name__
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
 				logging.info("Detected 'joke/funny' in command")
 				event = TellAJoke.__name__

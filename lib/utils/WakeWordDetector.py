@@ -1,31 +1,8 @@
-import re
-import os
-import json
 import pyaudio
-import random
 import struct
-import requests
 import logging
-import textwrap
 import pvporcupine
-import speech_recognition as sr
-import wikipedia
-import pyjokes
-import pyttsx3
-import newspaper
-import subprocess
-import time
-from PyDictionary import PyDictionary
-from nltk import sent_tokenize
-
-from multiprocessing import Process
-from glob import glob
-from collections import defaultdict
 from datetime import datetime
-from playsound import playsound
-
-from ..constants import FAILED_TOKEN
-from .utils import playOnYoutube, googleSearchFor, playPlaylist, generateAllMusicFiles
 
 class WakeWordDetector:
 	def __init__(self):
