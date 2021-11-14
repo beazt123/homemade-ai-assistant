@@ -67,17 +67,18 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 
 ### Improvements
 #### Current phase
-- Do a git rebase
+- Write an articlePrinter class using Builder design pattern
+- Singleton for config
 - Replace config with dependency injected config: A config object in top level object. Passed into every object it is composed of.
 	- Each object implements FilterConfig interface where it chooses only appropriate config. No longer hard coded object methods.
 	- Pass config object to receivers in the main methods
 	- [*] Use config to choose what receivers to instantiate
-- Implement Command design pattern
-- Implement Publisher interface with only /local topic enabled
+- Implement Command interface
 - Have a voice Receiver object which is called by other Receivers
 
 #### IOT phase
 - Test code on Linux system. See if feasible and make it OS independent
+- Implement Publisher interface with only /local topic enabled
 - Create MQTT related class which implements Publisher.
 
 ### Shelved
