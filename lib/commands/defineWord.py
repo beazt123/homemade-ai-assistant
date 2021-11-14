@@ -5,7 +5,7 @@ class DefineWord(Command):
         self.receiver = dictionary
         self.arg = wordToDefine
 
-    def __call__(self, arg = None):
+    def __call__(self, arg):
         if not self.arg:
             return self.receiver.define(arg)
         else:
