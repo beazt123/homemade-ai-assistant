@@ -91,9 +91,10 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 		- wait time and phrase time limit
 		- AI talking speed
 - Use NLP cosine similarity calculations to link command to underlying action
+- Try to play the AI response asynchronously
 - Adjust for ambient noise only when needed
 - Sort the music into genres
-- Get the engine to refresh the new userPreferences unto the current settings. User preference not updating.
+
 
 
 #### Add-ons

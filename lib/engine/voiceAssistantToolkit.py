@@ -480,7 +480,5 @@ class Bot:
 			data = None
 		return event, data
 		
-	
-		
 
 		
