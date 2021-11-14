@@ -8,15 +8,17 @@ from nltk import sent_tokenize
 
 from .select_config import SelectConfig
 from .speechMixin import SpeechMixin
+from ..utils.article_builder import ArticleBuilder
 
 
 class Dictionary(SpeechMixin, SelectConfig):
 	def __init__(self, config, speechEngine):
-		SpeechMixin.__init__(self, speechEngine)
+		SpeechMixin.__init__(self, config, speechEngine)
 		
 		self.config = self.getConfig(config)
 		self._onlineEngDict = PyDictionary()
 		self._offlineEngDict = None
+		self.articleBuilder = ArticleBuilder()
 
 		
 
@@ -33,12 +35,9 @@ class Dictionary(SpeechMixin, SelectConfig):
 		return localConfig
 
 	def define(self, lookUpWord):
-		data = lookUpWord[0]
+		data = lookUpWord.split()[0]
 		onlineSearchResult = self._onlineEngDict.meaning(data)
-		wordToPrint = f"WORD: {data}"
-		print(wordToPrint)
-		print("=" * len(f"WORD: {data}\n"))
-		self.say(data)
+		self.articleBuilder.title(data)
 		
 		if onlineSearchResult == None:
 			logging.warn("Word not found in dictionary or internet connection is down. Reverting to offline dictionary")
@@ -48,23 +47,30 @@ class Dictionary(SpeechMixin, SelectConfig):
 				logging.info("Word not found in offline and online dictionary")
 				self.say("Your England very the powderful. Too powderful for me to find")
 				
-			script = sent_tokenize(offlineSearchResult)
+			# script = sent_tokenize(offlineSearchResult)
 			offlineSearchResult = re.sub("[0-9].", "\n- ", offlineSearchResult)
 			offlineSearchResult = re.sub(";", "\n\t- ", offlineSearchResult)
-			print(offlineSearchResult)
-			self.say(script)
-		
-		for category, meanings in onlineSearchResult.items():
-			print(f"{category}:")
-			self.say(category)
-			
-			counter = 0
-			
-			for meaning in meanings:
-				print(self.formatForPPrint(f"- {meaning}", indent="\t"))
-				self.say(meaning)
+			self.articleBuilder.content(offlineSearchResult)
+
+		else:
+			self.articleBuilder.startSection()
+			for category, meanings in onlineSearchResult.items():
+				self.articleBuilder.subtitle(f"{category}:")
+
+				counter = 0
+				self.articleBuilder.startSection(bullet = "-")
+				for meaning in meanings:
+					self.articleBuilder.content(meaning)
+					
+					if counter > 5:
+						break
+				self.articleBuilder.endSection()
 				
-				if counter > 5:
-					break
-			
-			print()
+			self.articleBuilder.endSection()
+		
+		for section in self.articleBuilder.getArticleSections():
+			for content in section:
+				print(content, end="")
+				self.say(content)
+
+		self.articleBuilder.clear()
