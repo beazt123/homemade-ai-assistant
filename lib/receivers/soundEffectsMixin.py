@@ -1,13 +1,11 @@
 import os
 import logging
-from .select_config import SelectConfig
 from playsound import playsound
 
-class SoundEffectsMixin(SelectConfig):
+class SoundEffectsMixin:
     def __init__(self, config) -> None:
-        self.config = self.getConfig(config)
 
-    def getConfig(self, config):
+    
         localConfig = dict()
         resourcesFolder = config.get("RESOURCES", "PARENT_FOLDER_NAME")
         soundsFolder = config.get("SOUND-EFFECTS", "FOLDER_NAME")
@@ -21,8 +19,9 @@ class SoundEffectsMixin(SelectConfig):
         localConfig["quick-processing"] = os.path.join(path_to_sounds_folder, config.get("SOUND-EFFECTS", "QUICK_PROCESSING"))
         # localConfig["done"] = os.path.join(path_to_sounds_folder, config.get("SOUND-EFFECTS", "DONE"))
 
+        self.config = localConfig
 
-        return localConfig
+        
 
     def readySound(self, block = False):    
         playsound(self.config["ready"], block)

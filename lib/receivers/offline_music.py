@@ -13,7 +13,7 @@ from ..utils.utils import playPlaylist, generateAllMusicFiles
 
 class OfflineMusic(SelectConfig, SpeechMixin):
     def __init__(self, config, speechEngine):
-        SpeechMixin.__init__(self, speechEngine)
+        SpeechMixin.__init__(self, config, speechEngine)
         self.config = self.getConfig(config)
 
         self._musicProcess = None
@@ -26,7 +26,7 @@ class OfflineMusic(SelectConfig, SpeechMixin):
 
     def setup(self):
         if self._musicProcess != None:
-            logging.info("Music playing currently. Stopping previous music process")
+            logging.info("Music playing currently. Stopping music process")
             self._musicProcess.terminate()
             self._musicProcess = None
             logging.debug("Killed current music process")
@@ -48,10 +48,11 @@ class OfflineMusic(SelectConfig, SpeechMixin):
         if len(systemMusic) == 0:
             logging.warn("No music found in specified directory. Scanning the computer for music")
             systemMusic = generateAllMusicFiles()
-
             logging.debug("Scanned music in computer")
-            self._musicProcess = Process(target=playPlaylist, args=(systemMusic,))
-            self._musicProcess.daemon = True
-            logging.debug("Created process to play music")
-            self._musicProcess.start()
-            logging.debug("Started process to play music")
+        
+        logging.info("Starting music player")
+        self._musicProcess = Process(target=playPlaylist, args=(systemMusic,))
+        self._musicProcess.daemon = True
+        logging.debug("Created process to play music")
+        self._musicProcess.start()
+        logging.debug("Started process to play music")

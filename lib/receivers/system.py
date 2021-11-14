@@ -21,7 +21,7 @@ class System(SpeechMixin, SoundEffectsMixin):
             }
     }
     def __init__(self, config, speechEngine):
-        SpeechMixin.__init__(self, speechEngine)
+        SpeechMixin.__init__(self, config, speechEngine)
         SoundEffectsMixin.__init__(self, config)
         self.platform = platform.system()
 

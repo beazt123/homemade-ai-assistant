@@ -3,19 +3,12 @@ import textwrap
 import wikipedia
 
 from ..utils.utils import playOnYoutube, googleSearchFor
-from .select_config import SelectConfig
 from .speechMixin import SpeechMixin
 
 
-class Searcher(SelectConfig, SpeechMixin):
+class Searcher(SpeechMixin):
 	def __init__(self, config, speechEngine):
-		SpeechMixin.__init__(self, speechEngine)
-		self.config = self.getConfig(config)
-		
-
-	def getConfig(self, config):
-		# return super().getConfig()
-		pass
+		SpeechMixin.__init__(self, config, speechEngine)
 
 	def google(self, searchStatement):
 		googleSearchFor(searchStatement)

@@ -8,7 +8,7 @@ from .speechMixin import SpeechMixin
 
 class GeneralReceiver(SelectConfig, SpeechMixin):
     def __init__(self, config, speechEngine):
-        SpeechMixin.__init__(self, speechEngine)
+        SpeechMixin.__init__(self, config, speechEngine)
         self.config = self.getConfig(config)
         self.timezone = timezone(self.config["timezone"])
         logging.info("Obtained Config")
