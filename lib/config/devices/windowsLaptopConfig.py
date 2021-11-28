@@ -2,8 +2,10 @@ import logging
 import pyttsx3
 from speech_recognition import Microphone as computerMic
 
+
 from ..config import config
 from ...utils.interpreter import Interpreter
+from ...receivers.engines.sound_engine import SoundEngine
 from ...receivers import *
 from ...commands import (
     DefineWord,
@@ -21,31 +23,35 @@ from ...commands import (
     WikiSearch
 )
 
+logger = logging.getLogger(__name__)
+
 speechEngine = pyttsx3.init()
+soundEngine = SoundEngine()
+
 
 englishDictionary = Dictionary(config, speechEngine)
-logging.info(f"Created {Dictionary.__name__} ")
+logger.info(f"Created {Dictionary.__name__} ")
 
 generalReception = GeneralReceiver(config, speechEngine)
-logging.info(f"Created {GeneralReceiver.__name__} ")
+logger.info(f"Created {GeneralReceiver.__name__} ")
 
-newsCaster = News(config, speechEngine)
-logging.info(f"Created {News.__name__} ")
+newsCaster = News(config, speechEngine, soundEngine)
+logger.info(f"Created {News.__name__} ")
 
 offlineMusicPlayer = OfflineMusic(config, speechEngine)
-logging.info(f"Created {OfflineMusic.__name__} ")
+logger.info(f"Created {OfflineMusic.__name__} ")
 
-searcher = Searcher(config, speechEngine)
-logging.info(f"Created {Searcher.__name__} ")
+searcher = Searcher(config, speechEngine, soundEngine)
+logger.info(f"Created {Searcher.__name__} ")
 
-systemInterface = System(config, speechEngine)
-logging.info(f"Created {System.__name__} ")
+systemInterface = System(config, speechEngine, soundEngine)
+logger.info(f"Created {System.__name__} ")
 
 weatherForecaster = Weather(config, speechEngine)
-logging.info(f"Created {Weather.__name__} ")
+logger.info(f"Created {Weather.__name__} ")
 
-fallbackReceiver = FallbackReceiver(config)
-logging.info(f"Created {FallbackReceiver.__name__} ")
+fallbackReceiver = FallbackReceiver(config, soundEngine)
+logger.info(f"Created {FallbackReceiver.__name__} ")
 
 commandsToUse = [
     DefineWord(englishDictionary),
@@ -64,5 +70,6 @@ commandsToUse = [
 ]
 
 
-configuredInterpreter = Interpreter(config, computerMic())
+configuredInterpreter = Interpreter(config, soundEngine, computerMic())
+logger.info(f"Created {Interpreter.__name__} ")
 commandHooks = {command.__class__.__name__: command for command in commandsToUse}

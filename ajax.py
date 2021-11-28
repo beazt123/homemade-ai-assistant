@@ -1,15 +1,30 @@
 import sys
 import logging
+
+from logging.handlers import SocketHandler
+from logging import StreamHandler
 args = sys.argv[1:]
 kwargs = dict(arg.upper().split('=') for arg in args)
+
 numeric_level = getattr(logging, kwargs.get('LOG', "CRITICAL"), None)
-logging.basicConfig(level=numeric_level)
+
+sockethandler = SocketHandler('127.0.0.1', 19996)
+streamHandler = StreamHandler(sys.stdout)
+streamHandler.setLevel(numeric_level)
+
+logging.basicConfig(
+	level=logging.NOTSET, 
+	handlers=[
+		sockethandler,
+		streamHandler
+		]
+	)
+
 
 
 from lib.constants import README
 from lib.invoker import Invoker
 from lib.utils.WakeWordDetector import WakeWordDetector
-
 from lib.config.devices.windowsLaptopConfig import configuredInterpreter, commandHooks
 	
 
@@ -39,11 +54,4 @@ def main():
 
 
 if __name__ == "__main__":
-	
-	
-	
-	# logging.disable(logging.CRITICAL)
-	
-			
-
 	main()
