@@ -3,12 +3,13 @@ import os
 import platform
 # import subprocess
 
-
 from .speechMixin import SpeechMixin
 from .soundEffectsMixin import SoundEffectsMixin
+from .asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 
+logger = logging.getLogger(__name__)
 
-class System(SpeechMixin, SoundEffectsMixin):
+class System(SpeechMixin, SoundEffectsMixin, AsyncStdVoiceResponseMixin):
     OS = {
         "Windows" : {
             "shutdown": "shutdown /s /t 1"
@@ -20,19 +21,25 @@ class System(SpeechMixin, SoundEffectsMixin):
             "shutdown": "sudo shutdown now"
             }
     }
-    def __init__(self, config, speechEngine):
+    def __init__(self, 
+                config, 
+                speechEngine = None, 
+                soundEngine = None):
         SpeechMixin.__init__(self, config, speechEngine)
-        SoundEffectsMixin.__init__(self, config)
+        SoundEffectsMixin.__init__(self, config, soundEngine)
+        AsyncStdVoiceResponseMixin.__init__(self, config, soundEngine)
         self.platform = platform.system()
 
     def terminateProgramme(self):        
-        logging.info("Exiting programme")
+        logger.info("Exiting programme")
+        self.sayGoodDay(block = True)
         self.switchOffSound(block = True)
         exit()
 
     def turnOffComputer(self):
-        logging.info("Shutting down system")
-        self.say("Alright. Shutting down your computer right now.")
+        logger.info("Shutting down system")
+        self.acknowledge(block = True)
+        self.sayBye()
         os.system(self.OS[self.platform]["shutdown"])
 
     # def openTerminal(self):

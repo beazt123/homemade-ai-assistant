@@ -2,6 +2,8 @@ import re
 import logging
 import speech_recognition as sr
 from lib.receivers.soundEffectsMixin import SoundEffectsMixin
+from lib.receivers.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
+
 
 from lib.commands import (
     DefineWord,
@@ -19,14 +21,24 @@ from lib.commands import (
 	DefaultCommand
 )
 
+logger = logging.getLogger(__name__)
 
-class Interpreter(SoundEffectsMixin):
+class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 	FAILED_TOKEN = "!FAILED"
 
-	def __init__(self, config, mic):
-		SoundEffectsMixin.__init__(self, config)
+	def __init__(self, config, soundEngine, mic):
+		logger.info(f"Creating Sound effects mixin for {Interpreter.__name__}")
+		SoundEffectsMixin.__init__(self, config, soundEngine)
+		logger.info(f"Created effects mixin for {Interpreter.__name__}")
+
+		logger.info(f"Creating Async standard AI voice response mixin for {Interpreter.__name__}")
+		AsyncStdVoiceResponseMixin.__init__(self, config, soundEngine)
+		logger.info(f"Created Async standard AI voice response mixin for {Interpreter.__name__}")
+
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
+		logger.debug(f"Created speech recongizer object for {Interpreter.__name__}")
+		
 	
 	def __del__(self):
 		try:
@@ -37,46 +49,51 @@ class Interpreter(SoundEffectsMixin):
 			pass
 		
 	def adjust_for_ambient_noise(self):
-		logging.debug("Calibrating Mic")
+		logger.debug("Calibrating Mic")
 		with self.listener as source:
 			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
 		
 	def listen(self):
-		self.readySound()
+		if self.greetedUser():
+			self.readySound()
+		else:
+			self.greet(block = True)
+			self.offerHelp(block = True)
+
 		try:
 			with self.listener as source:
 				try:					
-					logging.info("Listening...")
+					logger.info("Listening...")
 					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
 					
-					logging.debug("Voice received")
+					logger.debug("Voice received")
 					command	= self.transcribe(voice)					
-					logging.debug("Transcribed voice")
+					logger.debug("Transcribed voice")
 					command = command.strip().lower()
-					logging.debug(f"Detected command: {command}")
+					logger.info(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
-					logging.info("User didn't speak")
+					logger.info("User didn't speak")
 					command = Interpreter.FAILED_TOKEN
 				
 		except sr.UnknownValueError:
-			logging.info("Couldn't detect voice")
+			logger.debug("Couldn't detect voice")
 			command = Interpreter.FAILED_TOKEN
 			
 		event, data = self.interpret(command)
-		logging.info(f"Event: {event}, Data: {data}")
+		logger.info(f"Event: {event}, Data: {data}")
 		
 		return event, data
 		
 	def transcribe(self, audio):
 		try:
 			command = self.recogniser.recognize_google(audio)
-			logging.debug("Using Google online transcription service")
+			logger.info("Used Google online transcription service")
 		except sr.RequestError:
-			logging.warning("Internet unavailable. Using offline TTS")
+			logger.warning("Internet unavailable. Using offline TTS")
 			command = self.recogniser.recognize_sphinx(audio)
-			logging.debug("Using Sphinx offline transcription service")
+			logger.info("Used Sphinx offline transcription service")
 
-		logging.info(f"Transcription: {command}")
+		logger.info(f"Transcription: {command}")
 		return command
 				
 	def interpret(self, command):
@@ -85,63 +102,61 @@ class Interpreter(SoundEffectsMixin):
 		event = None
 		data = None
 		if re.search("^shutdown.*(computer$|system$)", command):
-			logging.info("Detected shutdown command")
+			logger.info("Detected shutdown command")
 			event = ShutdownSystem.__name__
 		elif re.search("(^youtube.*)|(.*(on youtube)$)", command):
-			logging.info("Detected 'youtube' in command")
+			logger.info("User command contains Youtube")
 			if re.search("^play.*", command):
 				command = re.sub("play", "", command)
 			video = re.sub("on youtube", "", command)
 			video = re.sub("youtube", "", video)
-			logging.debug(f"video: {video}")
+			logger.info(f"video: {video}")
 			event = PlayYoutubeVideo.__name__
 			data = video
 		elif re.search("^play.*music$", command):
-			logging.info("Detected offline music command: start")
+			logger.info("Detected offline music command: start")
 			event = StartOfflineMusic.__name__
 		elif re.search("^stop.*music$", command):
-			logging.info("Detected offline music command: stop")
+			logger.info("Detected offline music command: stop")
 			event = StopOfflineMusic.__name__
 		elif re.search("((^wiki|^wikipedia).*)|(.*(wiki$|wikipedia$))", command):
-			logging.info("Detected wiki search command")
+			logger.info(f"Detected wiki search: {command}")
 			sub_command = command.replace("wikipedia","").strip()
 			search = sub_command.replace("wiki","").strip()
+			logger.info(f"Wiki search statement: {search}")
 			event = WikiSearch.__name__
 			data = search
 		elif re.search("^google.*", command):
-			logging.info("Detected google search command")
+			logger.info(f"Detected google search")
 			search = re.sub("google", "", command).strip()
+			logger.info(f"Google search statement: {search}")
 			event = GoogleSearch.__name__
 			data = search
 		elif re.search("^define", command):
-			logging.info("Detected dictionary command")
+			logger.info(f"Detected dictionary command: {command}")
 			statement = re.sub("define", "", command).strip().split()
 			lookUpWord = statement[0]
+			logger.info(f"Look up word: {lookUpWord}")
 			event = DefineWord.__name__
 			data = lookUpWord
-		# elif re.search("terminal$|(command prompt)$|(command line)$", command):
-		# 	logging.info("Detected terminal command")
-		# 	event = "terminal"
-		# 	data = None
 		elif re.search("^tell.*", command):
-			logging.info("Detected 'tell' in command")
 			if re.search(".*time$", command):
-				logging.info("Detected 'time' in command")
+				logger.info("User is asking for time")
 				event = TellTime.__name__
 			elif re.search(".*joke$", command) or re.search(".*funny$", command):
-				logging.info("Detected 'joke/funny' in command")
+				logger.info("User is asking for a joke")
 				event = TellAJoke.__name__
 		elif re.search("(^news.*)|(.*news$)", command):
-			logging.info("Detected news command")
+			logger.info("User is asking for news")
 			event = GetNews.__name__
 		elif "goodbye" in command or "bye" in command or "bye-bye" in command:
-			logging.info("Detected 'goodbye' or 'bye' in command")
+			logger.info("Received command to terminate programme")
 			event = StopProgram.__name__
 		elif re.search("weather", command):
-			logging.info("Detected weather command")
+			logger.info("User is asking for weather forecast")
 			event = GetWeatherForecast.__name__
 		else:
-			logging.warn("Detected unknown command")
+			logger.warn("Detected unknown command")
 			event = DefaultCommand.__name__
 		return event, data
 		
