@@ -6,3 +6,4 @@ lib/config-files/config.ini
 resources/english-dictionary/dictionary.json
 response.json
 lib/config/files/keys.ini
+*.log
