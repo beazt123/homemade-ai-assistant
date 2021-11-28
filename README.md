@@ -65,28 +65,68 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 	- Downgrade setuptools to 45.2.0
 - [How to build an event system implementing Observer pattern](https://dev.to/kuba_szw/build-your-own-event-system-in-python-5hk6)
 - [How to read an uncompressed epub file](https://stackoverflow.com/questions/1388467/reading-epub-format)
+- 4 principles of config mgmt
+	- Static
+	- Use literals not string keys
+	- Define them close to where they are used
+	- Early validation
+- [Indepth python logging tutorial](https://coderzcolumn.com/tutorials/python/logging-simple-guide-to-log-events-in-python)
+- [Arduino WIFI ESP8266](https://www.youtube.com/watch?v=Q6NBnPfPhWE)
 
 ### Improvements
+---
+#### Primary
+I have enough information to implement these fixes
+
+#### Secondary
+Still need do research to implement them
+- [ ] Get the google searcher to return search results instead of just opening a browser and searching
+- [ ] Add an options receiver to modify the user preferences folder with input cleansing
+- [ ] Improve speed of CMD assistant
+- [ ] Adjust for ambient noise only when needed. Incorporate with user analytics. Only when needed := Fail to twice in a row := Kena default command twice in a row
+- [ ] Fix news articles not remembering past read articles
+
+
 #### IOT phase
 - Test code on Linux system. See if feasible and make it OS independent
 - Implement Publisher interface with only /local topic enabled
 - Create MQTT related class which implements Publisher.
+- See if MQTT libraries work on an arduino
+	- Test WIFI module
+	- UNO
+	- LED strips
+- [ ] What kinds of data can we send using MQTT?
 
 ### Shelved
+---
 #### Improvements
-- make it more OS independent(file system and playsound function)
-- If computer is playing audio && wake word is heard, lower computer volume temporarily(will make it more windows OS oriented)
-- Store preferences, settings and system settings
-	- Preferences
-		- News articles
-		- Spotify credentials
-		- wait time and phrase time limit
-		- AI talking speed
-- Use NLP cosine similarity calculations to link command to underlying action
-- Try to play the AI response asynchronously
-- Adjust for ambient noise only when needed
-- Sort the music into genres
+- [ ] Make sound features more OS independent(file system, config and playsound function)
+	- Sound libraries are OS dependent
+	- Current sound features are injected into receivers using mixin interfaces. Each sound mixin depends on a `SoundEngine` which is responsible for playing sound. Sound mixins are responsible for using the sounds
+	- Can implement sound features for both windows and OS by modifying the `SoundEngine` class to adapt to the current OS.
+	- Need a library that can play sound asynchronously for linux.
+	- Modify or extend the SoundEngine class into different versions for different OSes.
+- [ ] If computer is playing audio && wake word is heard, lower computer volume temporarily
+	- will make it more windows OS oriented tho
+- [ ] Use NLP cosine similarity calculations to link command to underlying action.
+	- Involves many layers of ML problems like NER and POS tagging for each specific command to use
+- [ ] Sort the music into genres
+- [ ] Spotify API: use input() if not credentials not found in cache/config
+	- Auth needed and only premium users get to stream content
 
+#### Config mgmt phase
+- [ ] Choose whether to standardise system settings and store multiple copies of user prefs
+	- Preferences
+		- News source
+		- wait time and phrase time limit
+	- Current user prefs be the default settings
+	- Custom user prefs be paired tgt with device configs.py
+	- CLI to change them or manual
+	- device configs point to the default user prefs by default
+	- device Config setter.ini to set(using booleans) which plugins to enable in device configs
+		- invoker to have a compulsory/builtin default receiver
+	- If all doesnt affect default user prefs and sysconfig, make a CLI to create a new device/user by setting devConfigSetter.ini
+	- Does devSetterConfig.ini = Custom User pref? Should they be tgt? No. Custom user prefs depend on what is enabled in devConfigSetter. Unless both are set at in one seating
 
 
 #### Add-ons
@@ -98,18 +138,13 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 	- To adjust the timeout, phrase timeout, etc
 
 ##### CMD tool
-- Add file search function to CMD general tool assistant
+- [ ] Add file search function to CMD general tool assistant
+	- Use glob with root
+	- Case sensitivity options
 
 
 ### Notes
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
-- Spotify API: use input() if not credentials not found in cache/config
-	- Shelved: Auth needed and only premium users get to stream content
+
 	
 	
-#### Config mgmt
-- 4 principles of config mgmt
-	- Static
-	- Use literals not string keys
-	- Define them close to where they are used
-	- Early validation
