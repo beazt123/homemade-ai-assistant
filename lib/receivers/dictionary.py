@@ -1,26 +1,27 @@
+from pprint import pprint
 import json
 import logging
 import os
 import re
 
 from PyDictionary import PyDictionary
-from nltk import sent_tokenize
 
 from .select_config import SelectConfig
 from .speechMixin import SpeechMixin
 from ..utils.article_builder import ArticleBuilder
 
+logger = logging.getLogger(__name__)
 
 class Dictionary(SpeechMixin, SelectConfig):
-	def __init__(self, config, speechEngine):
+	SPLIT_TOKEN = "<split-token>"
+
+	def __init__(self, config, speechEngine = None):
 		SpeechMixin.__init__(self, config, speechEngine)
 		
 		self.config = self.getConfig(config)
 		self._onlineEngDict = PyDictionary()
 		self._offlineEngDict = None
 		self.articleBuilder = ArticleBuilder()
-
-		
 
 		with open(self.config["dict"], "r") as f:
 			self._offlineEngDict = json.load(f)
@@ -32,27 +33,36 @@ class Dictionary(SpeechMixin, SelectConfig):
 									config.get("DICTIONARY", "FILE_NAME"))
 		localConfig = dict()
 		localConfig["dict"] = path_to_dict
+		logger.debug(f"Fetched path to dict from file: {localConfig['dict']}")
 		return localConfig
 
 	def define(self, lookUpWord):
 		data = lookUpWord.split()[0]
+		logger.info(f"Lookup word: {data}")
 		onlineSearchResult = self._onlineEngDict.meaning(data)
 		self.articleBuilder.title(data)
 		
 		if onlineSearchResult == None:
-			logging.warn("Word not found in dictionary or internet connection is down. Reverting to offline dictionary")
+			logger.warn("Not found in online dictionary/internet connection down. Reverting to offline dictionary")
 			offlineSearchResult = self._offlineEngDict.get(data, None)
 			
 			if offlineSearchResult == None:
-				logging.info("Word not found in offline and online dictionary")
+				logger.warn("Word not found in offline and online dictionary")
+				print(f"Sorry, '{lookUpWord}' not found in dictionary")
 				self.say("Your England very the powderful. Too powderful for me to find")
+				return
 				
-			# script = sent_tokenize(offlineSearchResult)
-			offlineSearchResult = re.sub("[0-9].", "\n- ", offlineSearchResult)
-			offlineSearchResult = re.sub(";", "\n\t- ", offlineSearchResult)
-			self.articleBuilder.content(offlineSearchResult)
+			logger.debug(f"Offline Search Result: {offlineSearchResult}")
+			offlineSearchResult = re.sub("[0-9].", Dictionary.SPLIT_TOKEN, offlineSearchResult)
+			cleansedOfflineSearchResult = [sentence.strip() for sentence in offlineSearchResult.split(Dictionary.SPLIT_TOKEN) if sentence != ""]
+			logger.info(f"Cleansed OfflineSearchResult: {cleansedOfflineSearchResult}")
+
+			for sentence in cleansedOfflineSearchResult:
+				self.articleBuilder.content(sentence)
+				logger.debug(f"Added: {sentence}")
 
 		else:
+			logger.info(f"Word found in online search: {onlineSearchResult}")
 			self.articleBuilder.startSection()
 			for category, meanings in onlineSearchResult.items():
 				self.articleBuilder.subtitle(f"{category}:")
@@ -68,9 +78,15 @@ class Dictionary(SpeechMixin, SelectConfig):
 				
 			self.articleBuilder.endSection()
 		
-		for section in self.articleBuilder.getArticleSections():
+		logger.info(self.articleBuilder.getArticleInSections())
+
+		for section in self.articleBuilder.getArticleInSections():
 			for content in section:
 				print(content, end="")
 				self.say(content)
+			# logging.debug(f"content: {content}")
+			# print(content, end="")
+			# self.say(content.strip("\n"))
+			# logging.debug(f"Said content: {content}")
 
 		self.articleBuilder.clear()

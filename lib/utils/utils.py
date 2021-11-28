@@ -6,20 +6,22 @@ from glob import iglob
 from itertools import chain
 from playsound import playsound, PlaysoundException
 
+logger = logging.getLogger(__name__)
+
 
 def playPlaylist(playlist):
-	logging.info("Starting playlist")
+	logger.info("Starting playlist")
 	for song in playlist:
-		logging.info(f"Attempting to play {song}")
+		logger.info(f"Attempting to play {song}")
 		try:
 			playsound(song)
-			logging.debug(f"Played {song}")
+			logger.debug(f"Played {song}")
 		except PlaysoundException:
-			logging.error("MCI error. Skipping current song")
+			logger.error("MCI error. Skipping current song")
 		except:
-			logging.error("Unknown error")
+			logger.exception("Unknown error")
 		
-	logging.info("Done playing playlist")
+	logger.info("Done playing playlist")
 
 def playOnYoutube(topic: str):
 	"""Play a YouTube Video"""

@@ -1,4 +1,8 @@
 import textwrap
+import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ArticleBuilder:
     SECTION_SEP_TOKEN = "<SECTION>"
@@ -12,18 +16,20 @@ class ArticleBuilder:
         self.bullet = ""
         self.textwrapper = textwrap.TextWrapper(width = 80)
 
-    def getArticleLines(self):
-        return self.article.split("\n")   
+    # def getArticleLines(self):
+    #     return self.article.split("\n")   
 
-    def getArticleSections(self):
-        articleSections = self.article.split(ArticleBuilder.SECTION_SEP_TOKEN)
-        articleStruct = list(map(lambda section : section.split(ArticleBuilder.CONTENT_SEP_TOKEN), articleSections))
+    def getArticleInSections(self):
+        sections = self.article.split(ArticleBuilder.SECTION_SEP_TOKEN)
+        structuredArticle = [list(section.split(ArticleBuilder.CONTENT_SEP_TOKEN)) for section in sections]
 
-        return articleStruct
+        logger.info(f"Sectioned article into {len(structuredArticle)} parts")
+        return structuredArticle
 
     def clear(self):
         self.article = ""
         self.resetIndents()
+        logger.info("Reset ArticleBuilder")
         return self
 
     def resetIndents(self):
@@ -34,20 +40,25 @@ class ArticleBuilder:
         self.content(title.upper())
         # self.content("=" * len(title))
         self.br()
+        logger.debug(f"Added title & newline: {title}")
         return self
 
     def subtitle(self, subtitle):
-        self.content(subtitle.title())
+        subtitle = subtitle.title()
+        self.content(subtitle)
         # self.content("-" * len(subtitle))
+        logger.debug(f"Added subtitle: {subtitle}")
         return self
 
     def startSection(self, bullet = "", paragraph_hint = ""):
         ''' Responsible for changing the indentation state '''
         # textwrap.fill(longString, width = 80, prefix = )
+
         self.indent_level += 1
         self.bullet = bullet
         self.paragraph_hint = paragraph_hint
         self.article += ArticleBuilder.SECTION_SEP_TOKEN
+        logger.debug(f"Started new section. Current indent level: {self.indent_level}")
         return self
 
     def endSection(self):
@@ -55,14 +66,17 @@ class ArticleBuilder:
         self.indent_level -= 1
         self.bullet = ""
         self.paragraph_hint = ""
-        self.article += ArticleBuilder.SECTION_SEP_TOKEN
+        # self.article += ArticleBuilder.SECTION_SEP_TOKEN
+        logger.debug(f"Ended new section. Current indent level: {self.indent_level}")
         return self
 
     def content(self, longString):
         with self:
             self.article += ArticleBuilder.CONTENT_SEP_TOKEN
-            self.article += self.textwrapper.fill(longString)
-            self.article += ArticleBuilder.CONTENT_SEP_TOKEN
+            content = self.textwrapper.fill(longString)
+            self.article += content
+            logger.debug(f"Added statement: {content} & newline")
+            # self.article += ArticleBuilder.CONTENT_SEP_TOKEN
             self.article += "\n"
         return self
 
@@ -89,61 +103,11 @@ class ArticleBuilder:
         else:
             return string
 
-    
-
     def br(self, num_line_breaks = 1):
         with self:
             self.article += num_line_breaks * "\n"
+            logger.debug(f"Added {num_line_breaks} newline tokens")
         return self
 
     def __str__(self):
         return self.article
-
-if __name__ == "__main__":
-    builder = ArticleBuilder()
-    
-    # print(ArticleBuilder.render_title("string loose ends meet me at the"))
-    (builder.title("Sylvia Chan and Oniichan")
-                .startSection()
-                .subtitle("Example Subtitle")
-                .content("lorem ipsum" * 50)
-                .endSection()
-    )
-
-    for section in builder.getArticleSections():
-        for content in section:
-            print(content, end="")
-
-'''
-builder = ArticleBuilder()
-
-bulder.title("Sylvia Chan kena")
-        .startSection()
-        .content(authors)
-        .content(longString)
-        .content(video links)
-        .endSection()
-
-bulder.title("Word: Engineer")
-        .subtitle("VERB:")
-        .startSection(bullet = "-")
-        .content(longString)
-        .content(longString)
-        .content(longString)
-        .endSection()
-
-        .subtitle("NOUN:")
-        .startSection(bullet = "-")
-        .content(longString)
-        .content(longString)
-        .content(longString)
-        .endSection()
-
-
-Wrap must account for bullets
-
-- width
-- initial indent
-- subsequent indent
-- 
-'''

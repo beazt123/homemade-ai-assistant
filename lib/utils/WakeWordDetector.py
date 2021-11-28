@@ -1,12 +1,16 @@
 import pyaudio
 import struct
+import sys
 import logging
 import pvporcupine
 from datetime import datetime
 
+logger = logging.getLogger(__name__)
+
 class WakeWordDetector:
 	def __init__(self):
 		pa = pyaudio.PyAudio()
+		
 		self.wake_words = pvporcupine.KEYWORDS
 		
 		self.porcupine = pvporcupine.create(keywords = self.wake_words)
@@ -16,9 +20,8 @@ class WakeWordDetector:
 			format = pyaudio.paInt16,
 			input = True,
 			frames_per_buffer = self.porcupine.frame_length)
-	
-	def show_wake_words(self):
-		return self.wake_words
+			
+		logger.info("Initialised Wake word detector")
 		
 	def waitForWakeWord(self):
 		while True:
@@ -27,5 +30,5 @@ class WakeWordDetector:
 
 			result = self.porcupine.process(pcm)	
 			if result >= 0:
-				logging.info('[%s] Detected %s' % (str(datetime.now()), list(pvporcupine.KEYWORDS)[result]))
+				logger.info('[%s] Detected %s' % (str(datetime.now()), list(pvporcupine.KEYWORDS)[result]))
 				break
