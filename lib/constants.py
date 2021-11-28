@@ -43,10 +43,6 @@ Command words:
 		I.e. "tell me the time" or "tell time"
 			"tell me a joke" or "tell a joke" or even "Tell joke"
 		
-	...A MALE/FEMALE ASSISTANT:
-		Changes the gender of the voice assistant.
-		I.e. "can I talk to a female assistant?"
-		
 	BYE-BYE:
 		Closes this program.
 		I.e. "goodbye" or "bye" or "bye-bye"
