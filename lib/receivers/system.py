@@ -1,7 +1,6 @@
 import logging
 import os
 import platform
-# import subprocess
 
 from .speechMixin import SpeechMixin
 from .soundEffectsMixin import SoundEffectsMixin

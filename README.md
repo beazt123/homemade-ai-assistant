@@ -80,11 +80,14 @@ I have enough information to implement these fixes
 
 #### Secondary
 Still need do research to implement them
-- [ ] Get the google searcher to return search results instead of just opening a browser and searching
-- [ ] Add an options receiver to modify the user preferences folder with input cleansing
+- [ ] Make sound features more OS independent(file system, config and playsound function)
+	- Sound libraries are OS dependent
+	- Current sound features are injected into receivers using mixin interfaces. **Each** sound mixin depends on a `SoundEngine` which is responsible for playing sound. Sound mixins are responsible for using the sounds
+	- Can implement sound features for both windows and OS by modifying the `SoundEngine` class to adapt to the current OS.
+	- Need a library that can play sound asynchronously for linux.
+	- Modify or extend the SoundEngine class into different versions for different OSes.
 - [ ] Improve speed of CMD assistant
 - [ ] Adjust for ambient noise only when needed. Incorporate with user analytics. Only when needed := Fail to twice in a row := Kena default command twice in a row
-- [ ] Fix news articles not remembering past read articles
 
 
 #### IOT phase
@@ -100,12 +103,7 @@ Still need do research to implement them
 ### Shelved
 ---
 #### Improvements
-- [ ] Make sound features more OS independent(file system, config and playsound function)
-	- Sound libraries are OS dependent
-	- Current sound features are injected into receivers using mixin interfaces. Each sound mixin depends on a `SoundEngine` which is responsible for playing sound. Sound mixins are responsible for using the sounds
-	- Can implement sound features for both windows and OS by modifying the `SoundEngine` class to adapt to the current OS.
-	- Need a library that can play sound asynchronously for linux.
-	- Modify or extend the SoundEngine class into different versions for different OSes.
+
 - [ ] If computer is playing audio && wake word is heard, lower computer volume temporarily
 	- will make it more windows OS oriented tho
 - [ ] Use NLP cosine similarity calculations to link command to underlying action.
@@ -136,11 +134,6 @@ Still need do research to implement them
 - Introduce states using smach
 - User analytics
 	- To adjust the timeout, phrase timeout, etc
-
-##### CMD tool
-- [ ] Add file search function to CMD general tool assistant
-	- Use glob with root
-	- Case sensitivity options
 
 
 ### Notes
