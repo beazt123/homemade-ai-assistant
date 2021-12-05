@@ -50,15 +50,17 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
         if not self.lazyLoadStatus():
             return
 
-        newNews = [article for article in self.newsRecord["newspaper"].articles if article.url not in self.newsRecord["readBefore"]]
+        newNews = [article for article in self.newsRecord["newspaper"].articles if article not in self.newsRecord["readBefore"]]
         logger.info(f"Number of new news: {len(newNews)}")
         # TODO: filter not working for articles already read. Maybe don't check the URL
 
         try:
             selectedNews = random.sample(newNews, numArticles)
         except ValueError:
+            logger.warn("Insufficient news")
             selectedNews = newNews
             if len(selectedNews) == 0:
+                logger.warn("No more news")
                 self.say("I have no more news for today")
                 return			
 
@@ -96,7 +98,9 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
 
             self.articleBuilder.endSection()
             self.articleBuilder.br()
-            self.newsRecord["readBefore"].add(article.url)
+            self.newsRecord["readBefore"].add(article)
+
+        logger.debug(self.newsRecord["readBefore"])
 
         for section in self.articleBuilder.getArticleInSections():
             for content in section:
@@ -109,6 +113,8 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
                 
                 script = content.replace("\n", " ")
                 self.say(script)
+
+        self.articleBuilder.clear()
 
         self.say("That's all for now. Ping me again if you wanna hear more")
 
