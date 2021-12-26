@@ -1,6 +1,5 @@
 import pyaudio
 import struct
-import sys
 import logging
 import pvporcupine
 from datetime import datetime
@@ -13,7 +12,8 @@ class WakeWordDetector:
 		
 		self.wake_words = pvporcupine.KEYWORDS
 		
-		self.porcupine = pvporcupine.create(keywords = self.wake_words)
+		self.porcupine = pvporcupine.create(access_key="7HMNiUODCJKyX7N+dqjioWgaH7SWxTeOAIObC1LRG+StoNEynFzgJQ==", 
+											keywords = self.wake_words)
 		self.audio_stream = pa.open(
 			rate = self.porcupine.sample_rate,
 			channels = 1,
