@@ -18,3 +18,5 @@ class Invoker:
 		if event in self._commands.keys():
 			self._commands[event](data)
 			logger.info(f"{self.__class__.__name__} call {event} with {data} successful")
+		else:
+			raise ValueError("No such command")

@@ -13,13 +13,12 @@ pyttsx3 = "*"
 playsound = "<=1.2.2"
 wikipedia = "*"
 newspaper3k = "*"
-cachetools = "*"
-spotipy = "*"
 pydictionary = "*"
 nltk = "*"
-pydispatcher = "*"
 setuptools = "==45.2.0"
 pytz = "*"
+paho-mqtt = "*"
+pyyaml = "*"
 
 [dev-packages]
 

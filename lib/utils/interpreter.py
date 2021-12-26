@@ -98,7 +98,6 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 				
 	def interpret(self, command):
 		'''Break down the command into Event and data objects'''
-		# TODO: if possible NLP, NER should go into here as well
 		event = None
 		data = None
 		if re.search("^shutdown.*(computer$|system$)", command):
@@ -155,6 +154,13 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 		elif re.search("weather", command):
 			logger.info("User is asking for weather forecast")
 			event = GetWeatherForecast.__name__
+		elif re.search("^lights", command):
+			arg = command.replace("lights", "").strip().lower()
+			if arg == "on":
+				data = "1"
+			elif arg == "off":
+				data = "0"
+			event = "lights"
 		else:
 			logger.warn("Detected unknown command")
 			event = DefaultCommand.__name__
