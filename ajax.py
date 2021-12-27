@@ -1,9 +1,11 @@
+
 import sys
 import logging
-import paho.mqtt.client as mqtt
-
 from logging.handlers import SocketHandler
 from logging import StreamHandler
+from os import path
+from lib.utils.setUp import createApp, getConfig, getSetUpConfig
+
 args = sys.argv[1:]
 kwargs = dict(arg.upper().split('=') for arg in args)
 
@@ -23,50 +25,26 @@ logging.basicConfig(
 
 
 
-from lib.constants import README
-from lib.invoker import Invoker
-from lib.utils.WakeWordDetector import WakeWordDetector
-from lib.config.devices.windowsLaptopConfig import configuredInterpreter, commandHooks
-from os import path
-from configparser import ConfigParser
-from lib.utils.dispatcher import Dispatcher
-
-
-
-def set_up_mqtt_client():
-	config = ConfigParser()
-	config.read(path.join("lib", "config", "devices", "rpi_mqtt_broker_config.ini"))
-	
-	client = mqtt.Client("P1") #create new instance
-	client.connect(config.get("MQTT", "IP_ADDR")) #connect to broker
-	# client.publish("topic1","HURRAY IT WORKS") #publish
-	return client
-	
-
 def main():
-		
-	print(README)
+	path_to_system_config = path.join("lib", "config", "files")
+	path_to_user_config = path.join("lib", "config", "devices", "windowsLaptop")
+	path_to_setup_config = path.join(path_to_user_config, "setup.yaml")
+	system_config_files = [
+		path.join(path_to_system_config, "sysconfig.ini"),
+		path.join(path_to_system_config, "keys.ini"),
+		path.join(path_to_user_config, "userconfig.ini")
+
+	]
+
+
+	config = getConfig(*system_config_files)
+	setup_config = getSetUpConfig(path_to_setup_config)
+	app = createApp(config, setup_config)
+
+	app.run()
 	
-	agent = WakeWordDetector()
-	bot = configuredInterpreter
-	invoker = Invoker()
-	invoker.registerAll(commandHooks)
-	dispatcher = Dispatcher(invoker, set_up_mqtt_client())
-	bot.switchOnSound()
-	
-	while True:
-		try:
-			bot.adjust_for_ambient_noise()
-			print("\nReady")
-			agent.waitForWakeWord()
-			command, arg = bot.listen()
-			dispatcher.dispatch(command, arg)
-			# invoker.execute(command, arg)
-		except KeyboardInterrupt:
-			del bot
-			del agent
-			break
-		
+
+    
 
 
 if __name__ == "__main__":
