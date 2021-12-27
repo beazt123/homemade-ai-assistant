@@ -7,13 +7,13 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 class WakeWordDetector:
-	def __init__(self):
+	def __init__(self, access_key):
 		pa = pyaudio.PyAudio()
 		
 		self.wake_words = pvporcupine.KEYWORDS
 		
-		self.porcupine = pvporcupine.create(access_key="7HMNiUODCJKyX7N+dqjioWgaH7SWxTeOAIObC1LRG+StoNEynFzgJQ==", 
-											keywords = self.wake_words)
+		self.porcupine = pvporcupine.create(access_key=access_key, 
+											keywords=self.wake_words)
 		self.audio_stream = pa.open(
 			rate = self.porcupine.sample_rate,
 			channels = 1,
