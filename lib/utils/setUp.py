@@ -64,7 +64,7 @@ class App:
 
 def set_up_iot_client(config):
 	config = ConfigParser()
-	config.read(path.join("lib", "config", "devices", "rpi_mqtt_broker_config.ini"))
+	config.read(path.join("lib", "config", "files", "sysconfig.ini"))
 
 	client = mqtt.Client("P1") #create new instance
 	client.connect(config.get("MQTT", "IP_ADDR")) #connect to broker
