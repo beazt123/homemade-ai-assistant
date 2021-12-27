@@ -1,12 +1,10 @@
 --- 
 type: "standalone" # or master-slave
 receivers:
-	- Dictionary
-	- GeneralReceiver
-	- News
-	- OfflineMusic
-	- Searcher
-	- System
-	- Weather
-
-	
+  - Dictionary
+  - GeneralReceiver
+  - News
+  - OfflineMusic
+  - Searcher
+  - System
+  - Weather
