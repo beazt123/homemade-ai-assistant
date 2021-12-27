@@ -78,7 +78,6 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 #### Primary
 I have enough information to implement these fixes
 
-- [ ] move rpi mqtt settings.ini to sysconfig
 
 #### Secondary
 Still need do research to implement them
@@ -93,8 +92,7 @@ Still need do research to implement them
 
 #### IOT phase
 - Test code on Linux system. See if feasible and make it OS independent
-- Implement Publisher interface with only /local topic enabled
-- Create MQTT related class which implements Publisher.
+
 
 ### Shelved
 ---
