@@ -78,6 +78,8 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 #### Primary
 I have enough information to implement these fixes
 
+- [ ] move rpi mqtt settings.ini to sysconfig
+
 #### Secondary
 Still need do research to implement them
 - [ ] Make sound features more OS independent(file system, config and playsound function)
@@ -86,7 +88,6 @@ Still need do research to implement them
 	- Can implement sound features for both windows and OS by modifying the `SoundEngine` class to adapt to the current OS.
 	- Need a library that can play sound asynchronously for linux.
 	- Modify or extend the SoundEngine class into different versions for different OSes.
-- [ ] Improve speed of CMD assistant
 - [ ] Adjust for ambient noise only when needed. Incorporate with user analytics. Only when needed := Fail to twice in a row := Kena default command twice in a row
 
 
@@ -94,11 +95,6 @@ Still need do research to implement them
 - Test code on Linux system. See if feasible and make it OS independent
 - Implement Publisher interface with only /local topic enabled
 - Create MQTT related class which implements Publisher.
-- See if MQTT libraries work on an arduino
-	- Test WIFI module
-	- UNO
-	- LED strips
-- [ ] What kinds of data can we send using MQTT?
 
 ### Shelved
 ---
