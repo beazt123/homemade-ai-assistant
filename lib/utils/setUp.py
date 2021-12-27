@@ -1,8 +1,7 @@
 import logging
 import pyttsx3
 import yaml
-import paho.mqtt.client as mqtt
-from os import path
+from ..iot.MQTTClient import MQTTClient
 
 from speech_recognition import Microphone as computerMic
 from configparser import ConfigParser
@@ -63,13 +62,13 @@ class App:
 			raise ValueError("Main attribute must be set before app.run() can be called.")
 
 def set_up_iot_client(config):
-	config = ConfigParser()
-	config.read(path.join("lib", "config", "files", "sysconfig.ini"))
-
-	client = mqtt.Client("P1") #create new instance
-	client.connect(config.get("MQTT", "IP_ADDR")) #connect to broker
-	# client.publish("topic1","HURRAY IT WORKS") #publish
-	return client
+	iot_client = None
+	client_type = config.get("IOT", "TYPE")
+	if client_type.lower() == "mqtt":
+		iot_client = MQTTClient(config.get("MQTT", "IP_ADDR"))
+	else:
+		raise ValueError("No IOT client setting provided in system configuration")
+	return iot_client
 
 def getSetUpConfig(filepath):
 	with open(filepath, 'r') as stream:
@@ -106,8 +105,6 @@ def createApp(config, setUpConfig) -> App:
 	
 	soundEngine = SoundEngine()
 	speechEngine = pyttsx3.init()
-	
-	
 	
 	commandsToUse = list()
 	receivers = setUpConfig["receivers"]
@@ -163,7 +160,8 @@ def createApp(config, setUpConfig) -> App:
 
 	invoker = Invoker()
 	invoker.registerAll(commandHooks)
-	dispatcher = Dispatcher(invoker, set_up_iot_client(config))
+	iot_client = set_up_iot_client(config)
+	dispatcher = Dispatcher(invoker, iot_client)
 	
 	interpreter = Interpreter(config, soundEngine, computerMic())
 	logger.info(f"Created {Interpreter.__name__} ")
