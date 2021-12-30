@@ -1,4 +1,3 @@
-from ctypes import ArgumentError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -22,12 +21,11 @@ class Dispatcher:
 			self.invoker.execute(event, data)
 			logger.info(f"Dispatched ({event}:{data}) to invoker")
 
-		except ArgumentError:
-			logger.info(f"{event} not found in invoker. Dispatching ({event}:{data}) to MQTT")
-			if not data:
-				data = "0"
+		except ValueError:
+			logger.info(f"{event} not found in invoker. Dispatching ({event}:{data}) to IOT client")
+
 			self.iot_client.publish(event, data)#publish
-			logger.info(f"Dispatched ({event}:{data}) to MQTT")
+			logger.info(f"Dispatched ({event}:{data}) to IOT client")
 		
 	def standBy(self):
 		''' Blocking command used by slave nodes '''
