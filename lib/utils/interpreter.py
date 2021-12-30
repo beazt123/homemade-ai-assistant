@@ -38,7 +38,6 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 		self.listener = mic
 		self.recogniser = sr.Recognizer()
 		logger.debug(f"Created speech recongizer object for {Interpreter.__name__}")
-		
 	
 	def __del__(self):
 		try:
@@ -98,7 +97,7 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 				
 	def interpret(self, command):
 		'''Break down the command into Event and data objects'''
-		event = None
+		event = DefaultCommand.__name__
 		data = None
 		if re.search("^shutdown.*(computer$|system$)", command):
 			logger.info("Detected shutdown command")
@@ -163,7 +162,7 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin):
 			event = "lights"
 		else:
 			logger.warn("Detected unknown command")
-			event = DefaultCommand.__name__
+			
 		return event, data
 		
 		
