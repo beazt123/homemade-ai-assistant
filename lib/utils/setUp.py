@@ -59,7 +59,7 @@ class App:
 						self.interpreter,
 						self.dispatcher)
 		else:
-			raise ValueError("Main attribute must be set before app.run() can be called.")
+			raise ValueError("Main attribute of app object must be set before app.run() can be called.")
 
 def set_up_iot_client(config):
 	iot_client = None
@@ -168,7 +168,7 @@ def createApp(config, setUpConfig) -> App:
 
 
 	app = App(wakeWordDetector, interpreter, dispatcher)
-	if setUpConfig["type"] == "standalone":
+	if setUpConfig["type"].lower() == "standalone":
 		app.main = runAsStandalone
 	
 	return app
