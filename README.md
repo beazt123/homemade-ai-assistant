@@ -83,7 +83,7 @@ I have enough information to implement these fixes
 Still need do research to implement them
 - [ ] Make sound features more OS independent(file system, config and playsound function)
 	- Sound libraries are OS dependent
-	- Current sound features are injected into receivers using mixin interfaces. **Each** sound mixin depends on a `SoundEngine` which is responsible for playing sound. Sound mixins are responsible for using the sounds
+	- Current sound features are injected into receivers using mixin interfaces. **Each** sound mixin depends on a `SoundEngine` which is solely responsible for playing sound. Sound mixins are solely responsible for using the `SoundEngine`.
 	- Can implement sound features for both windows and OS by modifying the `SoundEngine` class to adapt to the current OS.
 	- Need a library that can play sound asynchronously for linux.
 	- Modify or extend the SoundEngine class into different versions for different OSes.
@@ -100,38 +100,36 @@ Still need do research to implement them
 
 - [ ] If computer is playing audio && wake word is heard, lower computer volume temporarily
 	- will make it more windows OS oriented tho
-- [ ] Use NLP cosine similarity calculations to link command to underlying action.
-	- Involves many layers of ML problems like NER and POS tagging for each specific command to use
 - [ ] Sort the music into genres
-- [ ] Spotify API: use input() if not credentials not found in cache/config
-	- Auth needed and only premium users get to stream content
 
-#### Config mgmt phase
-- [ ] Choose whether to standardise system settings and store multiple copies of user prefs
-	- Preferences
-		- News source
-		- wait time and phrase time limit
-	- Current user prefs be the default settings
-	- Custom user prefs be paired tgt with device configs.py
-	- CLI to change them or manual
-	- device configs point to the default user prefs by default
-	- device Config setter.ini to set(using booleans) which plugins to enable in device configs
-		- invoker to have a compulsory/builtin default receiver
-	- If all doesnt affect default user prefs and sysconfig, make a CLI to create a new device/user by setting devConfigSetter.ini
-	- Does devSetterConfig.ini = Custom User pref? Should they be tgt? No. Custom user prefs depend on what is enabled in devConfigSetter. Unless both are set at in one seating
+#### Config mgmt
+- News source
+- wait time and phrase time limit
 
+#### RASA interpreter
+- [ ] Make a RASA server and test it with postman
+- [ ] Make Interpreter interface
+- [ ] Use RASA interpreter as a default and switch to regex interpreter as a backup
+- [ ] Write a bat script to launch the server and the assistant in separate terminals
+
+#### Setup mgmt phase
+- [ ] Add setup for sound
+- [ ] Add setup for master
+  - Just run all 3 objects without the invoker
+- [ ] Add setup for slave
+  - dispatcher will run in listening mode and forward (event, data) to its invoker
 
 #### Add-ons
 ##### Voice assistant
 - Maybe incorporate [exrex](https://github.com/asciimoo/exrex) - A reverse Regex generator
 
-- Introduce states using smach
 - User analytics
 	- To adjust the timeout, phrase timeout, etc
 
 
 ### Notes
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
+- [rasa init fails with import error "composition view" remedy](https://stackoverflow.com/questions/70506164/importerror-cannot-import-name-compositionview-from-sanic-views-when-i-trie)
 
 	
 	
