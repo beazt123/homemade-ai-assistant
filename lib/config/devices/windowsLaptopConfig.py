@@ -4,7 +4,7 @@ from speech_recognition import Microphone as computerMic
 
 
 from ..config import config
-from ...utils.interpreter import Interpreter
+from ...interpreters.RasaInterpreter import RasaInterpreter
 from ...receivers.engines.sound_engine import SoundEngine
 from ...receivers import *
 from ...commands import (
@@ -70,6 +70,6 @@ commandsToUse = [
 ]
 
 
-configuredInterpreter = Interpreter(config, soundEngine, computerMic())
+configuredInterpreter = RasaInterpreter(config, soundEngine, computerMic())
 logger.info(f"Created {Interpreter.__name__} ")
 commandHooks = {command.__class__.__name__: command for command in commandsToUse}
