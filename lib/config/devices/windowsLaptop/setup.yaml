@@ -1,5 +1,6 @@
 --- 
 type: "standalone" # or master-slave
+interpreter: "master" # or regex, rasa
 receivers:
   - Dictionary
   - GeneralReceiver

@@ -1,17 +1,18 @@
 import logging
 import pyttsx3
 import yaml
+
+from ..interpreters import MasterInterpreter
 from ..iot.MQTTClient import MQTTClient
 
 from speech_recognition import Microphone as computerMic
 from configparser import ConfigParser
 from .WakeWordDetector import WakeWordDetector
-from .interpreter import Interpreter
+from ..interpreters import RasaInterpreter, RegexInterpreter
 from .dispatcher import Dispatcher
 from ..invoker import Invoker
 from ..receivers.engines.sound_engine import SoundEngine
 from ..receivers import *
-from ..constants import README
 from ..commands import (
 	DefineWord,
 	GetNews,
@@ -85,7 +86,7 @@ def getConfig(*filepaths):
 	return configParser
 		
 def runAsStandalone(wakeWordDetector, interpreter, dispatcher):
-	print(README)
+	print(interpreter.getUserGuide())
 	interpreter.switchOnSound()
 
 	while True:
@@ -93,7 +94,7 @@ def runAsStandalone(wakeWordDetector, interpreter, dispatcher):
 			interpreter.adjust_for_ambient_noise()
 			print("\nReady")
 			wakeWordDetector.waitForWakeWord()
-			command, arg = interpreter.listen()
+			command, arg = interpreter.interpret()
 			dispatcher.dispatch(command, arg)
 		# invoker.execute(command, arg)
 		except KeyboardInterrupt:
@@ -163,8 +164,15 @@ def createApp(config, setUpConfig) -> App:
 	iot_client = set_up_iot_client(config)
 	dispatcher = Dispatcher(invoker, iot_client)
 	
-	interpreter = Interpreter(config, soundEngine, computerMic())
-	logger.info(f"Created {Interpreter.__name__} ")
+	if setUpConfig["interpreter"].lower() == "rasa":
+		selectedInterpreter = RasaInterpreter
+	elif setUpConfig["interpreter"].lower() == "regex":
+		selectedInterpreter = RegexInterpreter
+	elif setUpConfig["interpreter"].lower() == "master":
+		selectedInterpreter = MasterInterpreter
+	
+	interpreter = selectedInterpreter(config, soundEngine, computerMic())
+	logger.info(f"Created {selectedInterpreter.__name__} ")
 
 
 	app = App(wakeWordDetector, interpreter, dispatcher)
