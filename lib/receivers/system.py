@@ -2,9 +2,9 @@ import logging
 import os
 import platform
 
-from .speechMixin import SpeechMixin
-from .soundEffectsMixin import SoundEffectsMixin
-from .asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
+from .mixins.speechMixin import SpeechMixin
+from .mixins.soundEffectsMixin import SoundEffectsMixin
+from .mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 
 logger = logging.getLogger(__name__)
 

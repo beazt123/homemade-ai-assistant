@@ -1,5 +1,5 @@
 import logging
-from .soundEffectsMixin import SoundEffectsMixin
+from .mixins.soundEffectsMixin import SoundEffectsMixin
 
 logger = logging.getLogger(__name__)
 

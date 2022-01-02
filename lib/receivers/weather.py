@@ -4,7 +4,7 @@ import requests
 from pytz import timezone
 
 from .select_config import SelectConfig
-from .speechMixin import SpeechMixin
+from .mixins.speechMixin import SpeechMixin
 from ..utils.article_builder import ArticleBuilder
 
 logger = logging.getLogger(__name__)

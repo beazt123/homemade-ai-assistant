@@ -3,8 +3,8 @@ import textwrap
 import wikipedia
 
 from ..utils.utils import playOnYoutube, googleSearchFor
-from .speechMixin import SpeechMixin
-from .asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
+from .mixins.speechMixin import SpeechMixin
+from .mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 
 logger = logging.getLogger(__name__)
 

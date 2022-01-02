@@ -6,7 +6,7 @@ from glob import glob
 from multiprocessing import Process
 
 from .select_config import SelectConfig
-from .speechMixin import SpeechMixin
+from .mixins.speechMixin import SpeechMixin
 
 from ..utils.utils import playPlaylist, generateAllMusicFiles
 

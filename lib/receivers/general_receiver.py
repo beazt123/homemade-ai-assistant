@@ -1,10 +1,10 @@
-import datetime
+from datetime import datetime
 import logging
 import pyjokes
 from pytz import timezone
 
 from .select_config import SelectConfig
-from .speechMixin import SpeechMixin
+from .mixins.speechMixin import SpeechMixin
 
 logger = logging.getLogger(__name__)
 

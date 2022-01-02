@@ -5,8 +5,8 @@ import re
 from collections import defaultdict
 
 from .select_config import SelectConfig
-from .speechMixin import SpeechMixin
-from .asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
+from .mixins.speechMixin import SpeechMixin
+from .mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 from ..utils.article_builder import ArticleBuilder
 
 logger = logging.getLogger(__name__)

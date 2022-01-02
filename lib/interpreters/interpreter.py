@@ -1,7 +1,8 @@
 import logging
 import speech_recognition as sr
-from lib.receivers.soundEffectsMixin import SoundEffectsMixin
-from lib.receivers.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
+from lib.commands import command
+from lib.receivers.mixins.soundEffectsMixin import SoundEffectsMixin
+from lib.receivers.mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 from abc import ABC, abstractmethod
 
 
@@ -39,13 +40,7 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin, ABC):
 		with self.listener as source:
 			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
 		
-	def listen(self):
-		if self.greetedUser():
-			self.readySound()
-		else:
-			self.greet(block = True)
-			self.offerHelp(block = True)
-
+	def listenAndTranscribe(self):
 		try:
 			with self.listener as source:
 				try:					
@@ -53,19 +48,28 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin, ABC):
 					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
 					
 					logger.debug("Voice received")
-					command	= self.transcribe(voice)					
+					command	= self.transcribe(voice)				
 					logger.debug("Transcribed voice")
 					command = command.strip().lower()
 					logger.info(f"Detected command: {command}")
 				except sr.WaitTimeoutError:
 					logger.info("User didn't speak")
 					command = Interpreter.FAILED_TOKEN
-				
 		except sr.UnknownValueError:
-			logger.debug("Couldn't detect voice")
+			logger.debug("No voice detected")
 			command = Interpreter.FAILED_TOKEN
-			
-		event, data = self.interpret(command)
+		
+		return command
+
+	def interpret(self):
+		if self.greetedUser():
+			self.readySound()
+		else:
+			self.greet(block = True)
+			self.offerHelp(block = True)
+
+		command = self.listenAndTranscribe()
+		event, data = self.process(command)
 		logger.info(f"Event: {event}, Data: {data}")
 		
 		return event, data
@@ -82,9 +86,15 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin, ABC):
 		logger.info(f"Transcription: {command}")
 		return command
 
+	@classmethod
 	@abstractmethod			
-	def interpret(self, command):
+	def process(cls, command):
 		'''Break down the command into Event and data objects'''
+		pass
+
+	@classmethod
+	@abstractmethod
+	def getUserGuide(cls):
 		pass
 		
 		
