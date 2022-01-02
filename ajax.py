@@ -11,7 +11,7 @@ kwargs = dict(arg.upper().split('=') for arg in args)
 
 numeric_level = getattr(logging, kwargs.get('LOG', "CRITICAL"), None)
 
-sockethandler = SocketHandler('127.0.0.1', 19996)
+sockethandler = SocketHandler('localhost', 19996)
 streamHandler = StreamHandler(sys.stdout)
 streamHandler.setLevel(numeric_level)
 
