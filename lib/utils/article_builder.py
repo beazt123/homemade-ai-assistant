@@ -16,7 +16,12 @@ class ArticleBuilder:
         self.textwrapper = textwrap.TextWrapper(width = 80)
 
     # def getArticleLines(self):
-    #     return self.article.split("\n")   
+    #     return self.article.split("\n") 
+
+    def getArticleInPlainText(self):
+        temp = self.article.replace(ArticleBuilder.SECTION_SEP_TOKEN, "")
+        temp = temp.replace(ArticleBuilder.CONTENT_SEP_TOKEN, "")
+        return temp
 
     def getArticleInSections(self):
         sections = self.article.split(ArticleBuilder.SECTION_SEP_TOKEN)
