@@ -1,31 +1,31 @@
 import logging
 
-logger = logging.getLogger(__name__)
 
 class Dispatcher:
+	logger = logging.getLogger(__name__)
 	def __init__(self, invoker = None, iot_client = None):
 		self.invoker = invoker
 		self.iot_client = iot_client
-	
-	# @property
-	# def invoker(self):
-	# 	return self.invoker
 		
-	# @invoker.setter
-	# def invoker(self, externalInvoker):
-	# 	self.invoker = externalInvoker
 		
 	def dispatch(self, event, data):
 		try:
-			logger.info(f"Attempting to dispatch ({event}:{data}) to invoker")
+			Dispatcher.logger.info(f"Attempting to dispatch ({event}:{data}) to invoker")
 			self.invoker.execute(event, data)
-			logger.info(f"Dispatched ({event}:{data}) to invoker")
+			Dispatcher.logger.info(f"Dispatched ({event}:{data}) to invoker")
 
 		except ValueError:
-			logger.info(f"{event} not found in invoker. Dispatching ({event}:{data}) to IOT client")
+			Dispatcher.logger.info(f"{event} not found in invoker. Dispatching ({event}:{data}) to IOT client")
 
-			self.iot_client.publish(event, data)#publish
-			logger.info(f"Dispatched ({event}:{data}) to IOT client")
+			if self.iot_client:
+				published = self.iot_client.publish(event, data)	
+
+				if published:
+					Dispatcher.logger.info(f"Dispatched ({event}:{data}) to IOT client")
+				else:
+					Dispatcher.logger.info(f"No such IOT command. Ignored.")
+			else:
+				Dispatcher.logger.info("Command not found and IOTClient absent to publish message. Ignoring current command")
 		
 	def standBy(self):
 		''' Blocking command used by slave nodes '''
@@ -36,7 +36,7 @@ class Dispatcher:
 	# 	try:
 	# 		self.invoker.execute(event, data)
 	# 	except KeyError:
-	# 		logger.error(f"Non existent event({event}) called on {Dispatcher.__name__}")
+	# 		Dispatcher.logger.error(f"Non existent event({event}) called on {Dispatcher.__name__}")
 		
 	
 		
