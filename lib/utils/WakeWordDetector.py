@@ -7,10 +7,13 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 class WakeWordDetector:
-	def __init__(self, access_key):
+	def __init__(self, access_key, wakewords = pvporcupine.KEYWORDS):
 		pa = pyaudio.PyAudio()
 		
-		self.wake_words = pvporcupine.KEYWORDS
+		if set(wakewords).issubset(set(pvporcupine.KEYWORDS)):
+			self.wake_words = wakewords
+		else:
+			raise ValueError(f"Current wakewords are {wakewords}. Wakewords chosen must be one of {pvporcupine.KEYWORDS}")
 		
 		self.porcupine = pvporcupine.create(access_key=access_key, 
 											keywords=self.wake_words)
@@ -25,10 +28,11 @@ class WakeWordDetector:
 		
 	def waitForWakeWord(self):
 		while True:
+			# logger.debug("Reading next frame")
 			pcm = self.audio_stream.read(self.porcupine.frame_length)
 			pcm = struct.unpack_from("h" * self.porcupine.frame_length, pcm)
 
 			result = self.porcupine.process(pcm)	
 			if result >= 0:
-				logger.info('[%s] Detected %s' % (str(datetime.now()), list(pvporcupine.KEYWORDS)[result]))
+				logger.info(f'Detected {self.wake_words[result]}')
 				break
