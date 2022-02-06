@@ -1,0 +1,33 @@
+--- 
+type: "standalone" # or master-slave
+wakewords:
+  # - grasshopper
+  # - grapefruit
+  # - pico clock
+  # - americano
+  # - computer
+  # - ok google
+  # - bumblebee
+  # - hey google
+  # - hey barista
+  - hey siri
+  # - jarvis
+  # - porcupine
+  - blueberry
+  # - terminator
+  # - picovoice
+  - alexa
+
+interpreter: "regex" # or regex, rasa or master
+receivers:
+  - Dictionary
+  # - GeneralReceiver
+  # - News
+  # - OfflineMusic
+  - Searcher
+  # - System
+  # - Weather
+
+# iot_topics:
+  # - /lights/warm
+  # - /lights/cool
