@@ -10,10 +10,6 @@ class MasterInterpreter(Interpreter):
     regexInterpreter = RegexInterpreter
 
     @classmethod
-    def getUserGuide(cls):
-        return cls.USER_GUIDE
-
-    @classmethod
     def process(cls, command):
         try:
             cls.logger.info("Attempting to use RasaInterpreter")

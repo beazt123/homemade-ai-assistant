@@ -1,7 +1,7 @@
 import logging
 import requests
-from pvporcupine import KEYWORDS
 from requests.exceptions import Timeout
+from ..iot.IOTClient import IOTClient
 from .interpreter import Interpreter
 from lib.commands import (
 	DefineWord,
@@ -19,38 +19,6 @@ from lib.commands import (
 	DefaultCommand
 )
 
-
-README = \
-"""
-J.A.R.V.I.S Intelligence Systems
-================================
-Wake words:
-	Please say any 1 of the following words to wake J.A.R.V.I.S:
-		{wakewords}
-		
-Things you can do with it:
-	1) Search things on Google/Youtube/Wikipedia
-		- For wikipedia, a written response will be shown and read aloud
-		- For Google & Youtube, it will open a browser tab
-
-	2) Play offline music (& stop it after you're done)
-		- Set the music library file path in the config file
-	
-	3) Weather forecast in your area
-		- Set the locale in the config file
-
-	4) News flash
-
-	5) Ask for time
-
-	6) Get it to tell you a programming joke
-
-	7) Define a word
-	
-	8) Shut down the entire computer
-
-""".format(wakewords=", \n\t\t".join(KEYWORDS))
-
 class RasaInterpreterException(Exception):
 	pass
 
@@ -60,12 +28,7 @@ class RasaInterpreter(Interpreter):
 	RASA_NLU_SERVER_BASE_URL = "http://localhost:5005/"
 	RASA_NLU_PARSE_URL = f"{RASA_NLU_SERVER_BASE_URL}model/parse"
 	HEADERS = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-	USER_GUIDE = README
 	logger = logging.getLogger(__name__)
-
-	@classmethod
-	def getUserGuide(cls):
-		return RasaInterpreter.USER_GUIDE
 
 	@staticmethod
 	def mapIntentToEvent(intent):
@@ -92,8 +55,9 @@ class RasaInterpreter(Interpreter):
 			event = WikiSearch.__name__
 		elif intent == "google_search":
 			event = GoogleSearch.__name__
-
+		
 		return event
+		
 	
 	@staticmethod
 	def extractEntity(responseJs):
@@ -110,25 +74,50 @@ class RasaInterpreter(Interpreter):
 
 		return entityPhrase
 
+	@staticmethod
+	def processIOTcmd(cmd):
+		# Detect for IOT commands 1st
+		if cmd == "switch_on_lights":
+			event = "lights"
+			data = "1"
+		elif cmd == "switch_off_lights":
+			event = "lights"
+			data = "0"
+		
+		return event, data
+	
+	@staticmethod
+	def isIOTcmd(cmd):
+		return cmd in IOTClient.ALLOWED_COMMANDS
+
 	@classmethod
 	def process(cls, command):
 		if command == Interpreter.FAILED_TOKEN:
+			cls.logger.warn("Failed to interpret command. Reverting to default command")
 			return DefaultCommand.__name__, None
 		try:
 			response = requests.post(cls.RASA_NLU_PARSE_URL, 
 					json = { "text": command }, 
 					headers = cls.HEADERS,
 					timeout = 0.7)
+			cls.logger.info("Rasa Server responded")
 		except Timeout:
+			cls.logger.warn("Rasa Server timeout")
 			raise RasaInterpreterException("Server took too long to respond")
 			
 		if response.status_code == 200:
 			js = response.json()
-			intent = js["intent"]["name"]			
-			event = cls.mapIntentToEvent(intent)
-			data = cls.extractEntity(js)
+			intent = js["intent"]["name"]
+			cls.logger.info(f"Detected intent: {intent}")
 
-			return event, data
+			if RasaInterpreter.isIOTcmd(intent):
+				return RasaInterpreter.processIOTcmd(intent)
+			else:
+				event = cls.mapIntentToEvent(intent)
+				data = cls.extractEntity(js)
+
+				cls.logger.info(f"Event, data: {event}, {data}")
+				return event, data
 
 		else:
 			raise RasaInterpreterException(f"Response status code: {response.status_code} ({response.reason})")

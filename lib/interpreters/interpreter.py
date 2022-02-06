@@ -1,6 +1,5 @@
 import logging
 import speech_recognition as sr
-from lib.commands import command
 from lib.receivers.mixins.soundEffectsMixin import SoundEffectsMixin
 from lib.receivers.mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 from abc import ABC, abstractmethod
@@ -90,12 +89,4 @@ class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin, ABC):
 	@abstractmethod			
 	def process(cls, command):
 		'''Break down the command into Event and data objects'''
-		pass
-
-	@classmethod
-	@abstractmethod
-	def getUserGuide(cls):
-		pass
-		
-		
-		
+		pass		

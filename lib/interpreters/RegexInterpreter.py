@@ -16,69 +16,9 @@ from lib.commands import (
 	WikiSearch,
 	DefaultCommand
 )
-from pvporcupine import KEYWORDS
-
-README = \
-"""
-A.I general assistant
-===========================
-Wake words:
-	Please say any 1 of the following words to wake the assistant:
-		{wakewords}
-		
-Command words:
-
-	GOOGLE/YOUTUBE/WIKI: 
-		Performs a search on your browser for Google & Youtube.
-		Wiki searches will show here with audio response.
-		
-		I.e. Say "google most recommended reed diffuser"
-			 Say "youtube bloodstream ed sheeran"
-			 Say "wiki Donald Trump"
-		
-	PLAY / STOP...MUSIC:
-		Plays a random music on a pre-set directory
-		I.e. Say "play some music" or
-			say "play the music" or 
-			say "stop the music" or
-			say "stop playing the music"
-			
-	... WEATHER ...:
-		Gives you a 12 hr weather forecast in 3-hr blocks.
-		I.e. "Weather forecast" or
-			 "How's the weather today?"
-			
-	... NEWS ...:
-		Brings you summaries of the top 5 articles from a specified news site
-		
-	DEFINE <word>:
-		Gives you the dictionary definition of a single word. 
-		Works both offline and online.
-		I.e. "Define apprehensive"
-		
-	TELL...TIME / JOKE:
-		Tells you a joke or the time
-		I.e. "tell me the time" or "tell time"
-			"tell me a joke" or "tell a joke" or even "Tell joke"
-		
-	BYE-BYE:
-		Closes this program.
-		I.e. "goodbye" or "bye" or "bye-bye"
-		
-	SHUTDOWN COMPUTER:
-		Shuts down the computer. Rmb to save your work!
-		I.e. "shut down computer!"
-
-""".format(wakewords=", \n\t\t".join(KEYWORDS))
-
 
 class RegexInterpreter(Interpreter):
 	logger = logging.getLogger(__name__)
-	USER_GUIDE = README
-
-	@classmethod
-	def getUserGuide(cls):
-		return cls.USER_GUIDE
 
 	@classmethod
 	def process(cls, command):
@@ -138,6 +78,22 @@ class RegexInterpreter(Interpreter):
 		elif re.search("weather", command):
 			cls.logger.info("User is asking for weather forecast")
 			event = GetWeatherForecast.__name__
+		elif re.search("cool lights", command):
+			cls.logger.info("User wants to switch on the cool lights")
+			event = "/lights/cool"
+			state = command.replace("cool lights", "").strip().lower()
+			if state == "off":
+				data = "0"
+			else:
+				data = "1"
+		elif re.search("warm lights", command):
+			cls.logger.info("User wants to switch on the warm lights")
+			event = "/lights/warm"
+			state = command.replace("warm lights", "").strip().lower()
+			if state == "off":
+				data = "0"
+			else:
+				data = "1"
 		else:
 			cls.logger.warn("Detected unknown command")
 			
