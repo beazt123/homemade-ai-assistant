@@ -1,12 +1,11 @@
 import logging
 import pyttsx3
-import yaml
+from speech_recognition import Microphone as computerMic
 
+from .article_builder import ArticleBuilder
+from ..constants import USER_GUIDES
 from ..interpreters import MasterInterpreter
 from ..iot.MQTTClient import MQTTClient
-
-from speech_recognition import Microphone as computerMic
-from configparser import ConfigParser
 from .WakeWordDetector import WakeWordDetector
 from ..interpreters import RasaInterpreter, RegexInterpreter
 from .dispatcher import Dispatcher
@@ -28,27 +27,16 @@ from ..commands import (
 	TellTime,
 	WikiSearch
 )
+from lib import receivers
 
-'''
-logger
-
-import & read all config
-
-intialise system level objects: speech engine, sound engine
-
-Initialise & configure receivers
-
-create a command hook dictionary -> create & configure invoker
-
-wrap invoker with dispatcher
-'''
 logger = logging.getLogger(__name__)
+
 
 class App:
 	def __init__(self, 
 				 wakeWordDetector = None,
 				 interpreter = None,
-				 dispatcher = None) -> None:
+				 dispatcher = None):
 		self.wakeWordDetector = wakeWordDetector
 		self.interpreter = interpreter
 		self.dispatcher = dispatcher
@@ -62,36 +50,55 @@ class App:
 		else:
 			raise ValueError("Main attribute of app object must be set before app.run() can be called.")
 
-def set_up_iot_client(config):
+def set_up_iot_client(config, iot_topics, logger):
 	iot_client = None
 	client_type = config.get("IOT", "TYPE")
+	logger.info(f"Retrieved client type: {client_type}")
+	logger.info(f"Topics to subscribe to: {iot_topics}")
 	if client_type.lower() == "mqtt":
-		iot_client = MQTTClient(config.get("MQTT", "IP_ADDR"))
+		iot_client = MQTTClient(iot_topics, config.get("MQTT", "IP_ADDR"))
+		logger.info(f"Created {MQTTClient.__name__}: {iot_client}")
+		logger.info(f"{iot_client} subscribed to {iot_topics}")
 	else:
 		raise ValueError("No IOT client setting provided in system configuration")
 	return iot_client
 
-def getSetUpConfig(filepath):
-	with open(filepath, 'r') as stream:
-		dictionary = yaml.safe_load(stream)
-		# for key, value in dictionary.items():
-		#     print (key + " : " + str(value))
-	return dictionary
+def create_help_msg(wakeWordDetector, receivers):
 
-def getConfig(*filepaths):
-	configParser = ConfigParser()
-	for filepath in filepaths:
-		configParser.read(filepath)
 	
-	return configParser
+	user_guide_builder = ArticleBuilder()
+	user_guide_builder.title("A.I general assistant")
+	user_guide_builder.subtitle("Wake words")
+	user_guide_builder.startSection()
+	user_guide_builder.content(f"Please say any 1 of the following words to wake me up:")
+	user_guide_builder.content(', '.join(wakeWordDetector.wake_words))
+	user_guide_builder.br()
+
+	user_guide_builder.endSection()
+	user_guide_builder.subtitle("What I can do:")
+	user_guide_builder.startSection()
+
+	for receiver in receivers:
+		user_guide_builder.subtitle(USER_GUIDES[receiver]["title"])
+		user_guide_builder.startSection()
+		for line in USER_GUIDES[receiver]["content"]:
+			user_guide_builder.content(line)
+		user_guide_builder.endSection()
+		user_guide_builder.br(2)
+	user_guide_builder.endSection()
+
+	return user_guide_builder.getArticleInPlainText()
+
+
+	
 		
-def runAsStandalone(wakeWordDetector, interpreter, dispatcher):
-	print(interpreter.getUserGuide())
+def runAsStandalone(wakeWordDetector, interpreter, dispatcher, receivers):
+	print(create_help_msg(wakeWordDetector, receivers))
 	interpreter.switchOnSound()
 
 	while True:
 		try:
-			interpreter.adjust_for_ambient_noise()
+			# interpreter.adjust_for_ambient_noise()
 			print("\nReady")
 			wakeWordDetector.waitForWakeWord()
 			command, arg = interpreter.interpret()
@@ -102,36 +109,44 @@ def runAsStandalone(wakeWordDetector, interpreter, dispatcher):
 			del wakeWordDetector
 			break
 
+def runAsSlave(wakeWordDetector, interpreter, dispatcher):
+	dispatcher.standBy()
+
+
 def createApp(config, setUpConfig) -> App:
+	wakeWordDetector = None
+	interpreter = None
+	dispatcher = None
+	main = None
 	
 	soundEngine = SoundEngine()
 	speechEngine = pyttsx3.init()
 	
 	commandsToUse = list()
 	receivers = setUpConfig["receivers"]
-	if "Dictionary" in receivers:
+	if Dictionary.__name__ in receivers:
 		englishDictionary = Dictionary(config, speechEngine)
 		logger.info(f"Created {Dictionary.__name__} ")
 		commandsToUse.append(DefineWord(englishDictionary))
-	if "GeneralReceiver" in receivers:
+	if GeneralReceiver.__name__ in receivers:
 		generalReception = GeneralReceiver(config, speechEngine)
 		logger.info(f"Created {GeneralReceiver.__name__} ")
 		commandsToUse.extend([
 			TellAJoke(generalReception),
 			TellTime(generalReception)
 		])
-	if "News" in receivers:
+	if News.__name__ in receivers:
 		newsCaster = News(config, speechEngine, soundEngine)
 		logger.info(f"Created {News.__name__} ")
 		commandsToUse.append(GetNews(newsCaster))
-	if "OfflineMusic" in receivers:
+	if OfflineMusic.__name__ in receivers:
 		offlineMusicPlayer = OfflineMusic(config, speechEngine)
 		logger.info(f"Created {OfflineMusic.__name__} ")
 		commandsToUse.extend([
 			StartOfflineMusic(offlineMusicPlayer),
 			StopOfflineMusic(offlineMusicPlayer)
 		])
-	if "Searcher" in receivers:
+	if Searcher.__name__ in receivers:
 		searcher = Searcher(config, speechEngine, soundEngine)
 		logger.info(f"Created {Searcher.__name__} ")
 		commandsToUse.extend([
@@ -139,14 +154,14 @@ def createApp(config, setUpConfig) -> App:
 			PlayYoutubeVideo(searcher),
 			WikiSearch(searcher)
 		])
-	if "System" in receivers:
+	if System.__name__ in receivers:
 		systemInterface = System(config, speechEngine, soundEngine)
 		logger.info(f"Created {System.__name__} ")
 		commandsToUse.extend([
 			StopProgram(systemInterface),
 			ShutdownSystem(systemInterface)
 		])
-	if "Weather" in receivers:
+	if Weather.__name__ in receivers:
 		weatherForecaster = Weather(config, speechEngine)
 		logger.info(f"Created {Weather.__name__} ")
 		commandsToUse.append(GetWeatherForecast(weatherForecaster))
@@ -156,28 +171,43 @@ def createApp(config, setUpConfig) -> App:
 	commandsToUse.append(DefaultCommand(fallbackReceiver))
 	
 	commandHooks = {command.__class__.__name__: command for command in commandsToUse}
-	
-	wakeWordDetector = WakeWordDetector(config.get("WAKE-WORD-DETECTOR", "ACCESS_KEY"))
-
 	invoker = Invoker()
 	invoker.registerAll(commandHooks)
-	iot_client = set_up_iot_client(config)
+	logger.info("Added command hooks to invoker")
+	iot_topics = setUpConfig.get("iot_topics")
+	if iot_topics:
+		iot_client = set_up_iot_client(config, iot_topics, logger)
+		logger.info("Set up IOT client")
+	else:
+		iot_client = None
 	dispatcher = Dispatcher(invoker, iot_client)
 	
-	if setUpConfig["interpreter"].lower() == "rasa":
-		selectedInterpreter = RasaInterpreter
-	elif setUpConfig["interpreter"].lower() == "regex":
-		selectedInterpreter = RegexInterpreter
-	elif setUpConfig["interpreter"].lower() == "master":
-		selectedInterpreter = MasterInterpreter
+
+	if setUpConfig["type"].lower() == "standalone" or setUpConfig["type"].lower() == "master":
+		chosen_wakewords = setUpConfig["wakewords"]
+		wakeWordDetector = WakeWordDetector(config.get("WAKE-WORD-DETECTOR", "ACCESS_KEY"), chosen_wakewords)
+		
+		if setUpConfig["interpreter"].lower() == "rasa":
+			selectedInterpreter = RasaInterpreter
+		elif setUpConfig["interpreter"].lower() == "regex":
+			selectedInterpreter = RegexInterpreter
+		elif setUpConfig["interpreter"].lower() == "master":
+			selectedInterpreter = MasterInterpreter
+		else:
+			selectedInterpreter = RegexInterpreter
+
+		
+		interpreter = selectedInterpreter(config, soundEngine, computerMic())
+		logger.info(f"Created {selectedInterpreter.__name__} ")
+		main = lambda wakeWordDetector, interpreter, dispatcher  : runAsStandalone(wakeWordDetector, interpreter, dispatcher, receivers)
 	
-	interpreter = selectedInterpreter(config, soundEngine, computerMic())
-	logger.info(f"Created {selectedInterpreter.__name__} ")
+	elif setUpConfig["type"].lower() == "slave":
+		main = runAsSlave
 
 
 	app = App(wakeWordDetector, interpreter, dispatcher)
-	if setUpConfig["type"].lower() == "standalone":
-		app.main = runAsStandalone
+	app.main = main
+	
 	
 	return app
 	

@@ -1,8 +1,10 @@
 import os
+import yaml
 import webbrowser as web
 import logging
 import requests
 from glob import iglob
+from configparser import ConfigParser
 from itertools import chain
 from playsound import playsound, PlaysoundException
 
@@ -62,3 +64,15 @@ def generateAllMusicFiles(exts = ["mp3"]):
 	
 	return generator
 		
+def getSetUpConfig(filepath):
+	with open(filepath, 'r') as stream:
+		dictionary = yaml.safe_load(stream)
+		
+	return dictionary
+
+def getConfig(*filepaths):
+	configParser = ConfigParser()
+	for filepath in filepaths:
+		configParser.read(filepath)
+	
+	return configParser
