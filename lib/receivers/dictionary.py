@@ -83,7 +83,8 @@ class Dictionary(SpeechMixin, SelectConfig):
 		for section in self.articleBuilder.getArticleInSections():
 			for content in section:
 				print(content, end="")
-				self.say(content)
+				script = content.replace("\n", " ")
+				self.say(script)
 			# logging.debug(f"content: {content}")
 			# print(content, end="")
 			# self.say(content.strip("\n"))
