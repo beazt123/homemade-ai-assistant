@@ -1,0 +1,12 @@
+--- 
+/lights/cool:
+  - "on"
+  - "off"
+  - "1"
+  - "0"
+
+/lights/warm:
+  - "on"
+  - "off"
+  - "1"
+  - "0"
