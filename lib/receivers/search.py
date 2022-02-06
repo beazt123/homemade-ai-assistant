@@ -1,7 +1,7 @@
 import logging
 import textwrap
 import wikipedia
-
+from requests.exceptions import ConnectionError
 from ..utils.utils import playOnYoutube, googleSearchFor
 from .mixins.speechMixin import SpeechMixin
 from .mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
@@ -34,19 +34,22 @@ class Searcher(SpeechMixin, AsyncStdVoiceResponseMixin):
 		try:
 			info = wikipedia.summary(searchStatement, 2)
 			logger.info(f"Wiki search results: {info}")
-
-			self.say(info)
-
 			paragraphed = textwrap.fill(info.strip(), width=80)
 			print(textwrap.indent(paragraphed, prefix="\t"))
+			self.say(info)
 
 		except wikipedia.DisambiguationError:
-			logger.execption("Wikipedia DisambiguationError: >1 possible searches")
+			logger.exception("Wikipedia DisambiguationError: >1 possible searches")
 			self.say("Sorry, there were quite many possible searches. \
-				Mind if you be more specific in your search terms? Thanks!")
+				Please be more specific in your search terms")
 				
 		except wikipedia.exceptions.PageError:
-			logger.execption(f"{searchStatement} not found on wikipedia")
+			logger.exception(f"{searchStatement} not found on wikipedia")
 			self.say(f"Sorry, there are no matching searches for {searchStatement}")
+
+		except ConnectionError:
+			logger.exception(f"Unable to connect to wikipedia")
+			self.apologise(True)
+			self.tryLater()
 
         
