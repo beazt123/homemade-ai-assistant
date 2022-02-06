@@ -8,25 +8,9 @@
 4. Run `pipenv install`
 
 ### Running it
-5. `python ajax.py`
+5. `python ajax.py <config-file-name>`
 
-## Waking up the assistant
-To get the A.I assistant to listen to you, you must wake it up from its dormant state. 
-
-You can say one of the mainstream activation words I.e. *"Ok Google", "Alexa", "Hey Siri"* or even your favourite *"Jarvis"*! (I'm sorry. "Friday" doesn't work here) Alternatively, choose any word you like from below:
-- grapefruit
-- terminator
-- grasshopper
-- hey google
-- bumblebee
-- pico clock
-- americano
-- computer
-- picovoice
-- blueberry
-- porcupine
-
-## Voice commands
+## Some of the voice commands
 ### "*\<google/youtube/wiki\> \<item\>*"
 Opens up a web browser and searches for \<item\> in the respective platform. For wiki, will print a summary in the command prompt and read it out.
 
@@ -51,9 +35,6 @@ Tells you a programming related joke. Only programming nerds can understand.
 ### "*Shutdown computer/system*"
 Self explanatory. Make sure you've ready saved your work.
 
-### "*[Can I talk to] a male/female assistant?*"
-Words in the square brackets are optional. On the contrary, words not in the square brackets are compulsory. The default is female.
-
 
 ## Misc
 ### Resources:
@@ -76,7 +57,7 @@ Words in the square brackets are optional. On the contrary, words not in the squ
 ### Improvements
 ---
 #### Primary
-I have enough information to implement these fixes
+I have enough information to implement these fixes:
 
 
 #### Secondary
@@ -102,22 +83,6 @@ Still need do research to implement them
 	- will make it more windows OS oriented tho
 - [ ] Sort the music into genres
 
-#### Config mgmt
-- News source
-- wait time and phrase time limit
-
-#### RASA interpreter
-- [ ] Make a RASA server and test it with postman
-- [ ] Make Interpreter interface
-- [ ] Use RASA interpreter as a default and switch to regex interpreter as a backup
-- [ ] Write a bat script to launch the server and the assistant in separate terminals
-
-#### Setup mgmt phase
-- [ ] Add setup for sound
-- [ ] Add setup for master
-  - Just run all 3 objects without the invoker
-- [ ] Add setup for slave
-  - dispatcher will run in listening mode and forward (event, data) to its invoker
 
 #### Add-ons
 ##### Voice assistant
@@ -130,6 +95,7 @@ Still need do research to implement them
 ### Notes
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
 - [rasa init fails with import error "composition view" remedy](https://stackoverflow.com/questions/70506164/importerror-cannot-import-name-compositionview-from-sanic-views-when-i-trie)
+- Should not move the project if it has an existing virtualenv living in the system. Otherwise need to reset the virtualenv by deleting and re-creating it from the Pipfile
 
 	
 	
