@@ -52,7 +52,7 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
 
         newNews = [article for article in self.newsRecord["newspaper"].articles if article not in self.newsRecord["readBefore"]]
         logger.info(f"Number of new news: {len(newNews)}")
-        # TODO: filter not working for articles already read. Maybe don't check the URL
+        
 
         try:
             selectedNews = random.sample(newNews, numArticles)
