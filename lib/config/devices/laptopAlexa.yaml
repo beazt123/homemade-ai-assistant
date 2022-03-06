@@ -18,7 +18,7 @@ wakewords:
   # - picovoice
   - alexa
 
-interpreter: "regex" # or regex, rasa or master
+interpreter: "regex" # regex, rasa or master
 receivers:
   - Dictionary
   # - GeneralReceiver
