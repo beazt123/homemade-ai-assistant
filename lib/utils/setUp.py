@@ -4,10 +4,9 @@ from speech_recognition import Microphone as computerMic
 
 from .article_builder import ArticleBuilder
 from ..constants import USER_GUIDES
-from ..interpreters import MasterInterpreter
 from ..iot.MQTTClient import MQTTClient
 from .WakeWordDetector import WakeWordDetector
-from ..interpreters import RasaInterpreter, RegexInterpreter
+from ..interpreters import RasaInterpreter, RegexInterpreter, MasterInterpreter, NLUInterpreter
 from .dispatcher import Dispatcher
 from ..invoker import Invoker
 from ..receivers.engines.sound_engine import SoundEngine
@@ -193,6 +192,8 @@ def createApp(config, setUpConfig) -> App:
 			selectedInterpreter = RegexInterpreter
 		elif setUpConfig["interpreter"].lower() == "master":
 			selectedInterpreter = MasterInterpreter
+		elif setUpConfig["interpreter"].lower() == "nlu":
+			selectedInterpreter = NLUInterpreter
 		else:
 			selectedInterpreter = RegexInterpreter
 

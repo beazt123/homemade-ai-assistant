@@ -19,6 +19,8 @@ setuptools = "==45.2.0"
 pytz = "*"
 paho-mqtt = "*"
 pyyaml = "*"
+tensorflow = "*"
+tflearn = "*"
 
 [dev-packages]
 
