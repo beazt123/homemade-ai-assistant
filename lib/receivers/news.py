@@ -9,16 +9,16 @@ from .mixins.speechMixin import SpeechMixin
 from .mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
 from ..utils.article_builder import ArticleBuilder
 
-logger = logging.getLogger(__name__)
 
 class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
+    logger = logging.getLogger(__name__)
     URL_REGEX = r'(http|ftp|https):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])'
 
     def __init__(self, 
                 config, 
                 speechEngine = None,
                 soundEngine = None):
-        SpeechMixin.__init__(self, config, speechEngine)
+        SpeechMixin.__init__(self, speechEngine)
         AsyncStdVoiceResponseMixin.__init__(self, config, soundEngine)
         self.config = self.getConfig(config)
         self.newsRecord = defaultdict(lambda : set())
@@ -27,17 +27,17 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
     def getConfig(self, config):
         localConfig = dict()
         localConfig["news_website"] = config.get("NEWS", "news_website")
-        logger.debug(f"Loaded selected news website from config: {localConfig['news_website']}")
+        News.logger.debug(f"Loaded selected news website from config: {localConfig['news_website']}")
         return localConfig
 
     def lazyLoadStatus(self):
         if self.newsRecord["newspaper"] == set():
-            logger.info("Lazy loading newspaper articles")
+            News.logger.info("Lazy loading newspaper articles")
             self.acknowledge()
             self.newsRecord["newspaper"] = newspaper.build(self.config["news_website"])
 
             if len(self.newsRecord["newspaper"].articles) == 0:
-                logger.error("Could not load the newspaper articles")
+                News.logger.error("Could not load the newspaper articles")
                 self.apologise(block=True)
                 self.say("The online news website may have blocked my request. So I can't query for the latest news")
                 self.tryLater()
@@ -51,16 +51,16 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
             return
 
         newNews = [article for article in self.newsRecord["newspaper"].articles if article not in self.newsRecord["readBefore"]]
-        logger.info(f"Number of new news: {len(newNews)}")
+        News.logger.info(f"Number of new news: {len(newNews)}")
         
 
         try:
             selectedNews = random.sample(newNews, numArticles)
         except ValueError:
-            logger.warn("Insufficient news")
+            News.logger.warn("Insufficient news")
             selectedNews = newNews
             if len(selectedNews) == 0:
-                logger.warn("No more news")
+                News.logger.warn("No more news")
                 self.say("I have no more news for today")
                 return			
 
@@ -68,11 +68,11 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
 
         for article in selectedNews:
             article.download()
-            logger.debug(f"Downloaded: {article.url}")
+            News.logger.debug(f"Downloaded: {article.url}")
             article.parse()
-            logger.debug(f"Parsed :{article.url}")
+            News.logger.debug(f"Parsed :{article.url}")
             article.nlp()
-            logger.debug(f"NLP: {article.url}")
+            News.logger.debug(f"NLP: {article.url}")
             
             if len(article.authors) > 0:
                 authors = article.authors
@@ -100,15 +100,15 @@ class News(SelectConfig, SpeechMixin, AsyncStdVoiceResponseMixin):
             self.articleBuilder.br()
             self.newsRecord["readBefore"].add(article)
 
-        logger.debug(self.newsRecord["readBefore"])
+        News.logger.debug(self.newsRecord["readBefore"])
 
         for section in self.articleBuilder.getArticleInSections():
             for content in section:
-                logger.debug(f"Showing user: {content}")
+                News.logger.debug(f"Showing user: {content}")
                 print(content, end="")
                 
                 if re.search(News.URL_REGEX, content):
-                    logger.debug(f"Detected a URL in: {content}")
+                    News.logger.debug(f"Detected a URL in: {content}")
                     continue
                 
                 script = content.replace("\n", " ")

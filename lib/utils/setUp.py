@@ -1,6 +1,8 @@
 import logging
-import pyttsx3
 from speech_recognition import Microphone as computerMic
+from lib.receivers.engines.GttsSpeechEngine import GttsSpeechEngine
+
+from lib.receivers.engines.PyttsxSpeechEngine import PyttsxSpeechEngine
 
 from .article_builder import ArticleBuilder
 from ..constants import USER_GUIDES
@@ -26,7 +28,6 @@ from ..commands import (
 	TellTime,
 	WikiSearch
 )
-from lib import receivers
 
 logger = logging.getLogger(__name__)
 
@@ -118,9 +119,17 @@ def createApp(config, setUpConfig) -> App:
 	dispatcher = None
 	main = None
 	
+	speechEngineClass = None
+	if setUpConfig["tts"].lower() == "pyttsx3":
+		speechEngineClass = PyttsxSpeechEngine
+	elif setUpConfig["tts"].lower() == "gtts":
+		speechEngineClass = GttsSpeechEngine
+	else:
+		speechEngineClass = PyttsxSpeechEngine
+
 	soundEngine = SoundEngine()
-	speechEngine = pyttsx3.init()
-	
+	speechEngine = speechEngineClass(config)
+
 	commandsToUse = list()
 	receivers = setUpConfig["receivers"]
 	if Dictionary.__name__ in receivers:
@@ -193,6 +202,7 @@ def createApp(config, setUpConfig) -> App:
 		elif setUpConfig["interpreter"].lower() == "master":
 			selectedInterpreter = MasterInterpreter
 		elif setUpConfig["interpreter"].lower() == "nlu":
+			from ..interpreters import NLUInterpreter
 			selectedInterpreter = NLUInterpreter
 		else:
 			selectedInterpreter = RegexInterpreter

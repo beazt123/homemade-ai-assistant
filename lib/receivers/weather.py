@@ -7,13 +7,13 @@ from .select_config import SelectConfig
 from .mixins.speechMixin import SpeechMixin
 from ..utils.article_builder import ArticleBuilder
 
-logger = logging.getLogger(__name__)
 
 class Weather(SelectConfig, SpeechMixin):
+    logger = logging.getLogger(__name__)
     title = "Weather Forecast"
 
     def __init__(self, config, speechEngine = None):
-        SpeechMixin.__init__(self, config, speechEngine)
+        SpeechMixin.__init__(self, speechEngine)
         self.config = self.getConfig(config)
         self.timezone = timezone(self.config["TIMEZONE"])
         self.articleBuilder = ArticleBuilder()
@@ -35,14 +35,14 @@ class Weather(SelectConfig, SpeechMixin):
         r = requests.get(self.config["BASE_URL"], 
                         params = self.config["URL_PARAMS"])
 		
-        logger.info(f"Weather query status: {r.status_code}")
+        Weather.logger.info(f"Weather query status: {r.status_code}")
         if r.status_code == 200:
             data = r.json()
             hourlyWeather = data['hourly']
             now = self.timezone.localize(datetime.now())
 			
-            logger.debug(f"len(response.json): {len(hourlyWeather)}")
-            logger.debug(f"Time of query: {now.strftime('%I:%M %p')}")
+            Weather.logger.debug(f"len(response.json): {len(hourlyWeather)}")
+            Weather.logger.debug(f"Time of query: {now.strftime('%I:%M %p')}")
             
             self.articleBuilder.title(Weather.title)
             for hoursLater in range(0, 13, 3):
@@ -56,17 +56,17 @@ class Weather(SelectConfig, SpeechMixin):
                 apparentTemperature = round(laterWeather["feels_like"], 1)
                 desc = laterWeather["weather"][0]["description"].title()
                 humidity = laterWeather['humidity']
-                logger.debug(f"apparentTemperature: {apparentTemperature}")          
+                Weather.logger.debug(f"apparentTemperature: {apparentTemperature}")          
 
                 announcementScript = [
 					f'{desc}',
 					f"Apparent temperature at {apparentTemperature} degrees Celsius",
 					f"Humidity at {humidity} percent"				
                 ]
-                logger.debug(f"Weather announcement script: {announcementScript}")
+                Weather.logger.debug(f"Weather announcement script: {announcementScript}")
                 announcementPrintStmt = list(map(lambda s : s.replace("Celsius", "C").replace(" degrees", "").replace("percent", "%").replace(" at", ":"), announcementScript))
 				
-                logger.debug(f"Weather announcement script: {announcementPrintStmt}")
+                Weather.logger.debug(f"Weather announcement script: {announcementPrintStmt}")
 
                 self.articleBuilder.content(announcementPrintStmt[0])
                 self.articleBuilder.content(announcementPrintStmt[1])
@@ -79,14 +79,14 @@ class Weather(SelectConfig, SpeechMixin):
             for section in self.articleBuilder.getArticleInSections():
                 for content in section:
                     print(content, end="")
-                    logger.info(content)
+                    Weather.logger.info(content)
                     self.say(content)
 
             self.articleBuilder.clear()
 
         elif r.status_code == 401:
-            logger.error("Could not fetch weather info")
+            Weather.logger.error("Could not fetch weather info")
             self.say("No authentication provided. I couldn't log in to the weather server.")
         else:
-            logger.error("Unknown error")
+            Weather.logger.error("Unknown error")
             self.say("Why don't stick your head out the window?")

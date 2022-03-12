@@ -21,6 +21,7 @@ paho-mqtt = "*"
 pyyaml = "*"
 tensorflow = "*"
 tflearn = "*"
+gtts = "*"
 
 [dev-packages]
 
