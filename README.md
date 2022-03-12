@@ -39,7 +39,7 @@ Self explanatory. Make sure you've ready saved your work.
 ## Misc
 ### Resources:
 - [Speech Recognition Recognizer documentation](https://github.com/Uberi/speech_recognition/blob/master/reference/library-reference.rst)
-- [PyAudio whl file repository](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
+- [PyAudio whl file repository for WINDOWS](https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio)
 - [Python caching tool](https://towardsdatascience.com/how-to-speed-up-your-python-code-with-caching-c1ea979d0276)
 - [Rasa Python API](http://35.196.60.7/docs/nlu/0.14.5/python/)
 - [How to fix - Python 3.6 contains broken python 2 concurrent futures packages](https://stackoverflow.com/questions/54338270/syntax-error-after-installing-futures-package-in-my-virtualenv)
@@ -96,6 +96,7 @@ Still need do research to implement them
 - Pocketsphinx is not supported beyond python 3.6. The python version was downgraded to support pocketsphinx so as to enable offline transcription.
 - [rasa init fails with import error "composition view" remedy](https://stackoverflow.com/questions/70506164/importerror-cannot-import-name-compositionview-from-sanic-views-when-i-trie)
 - Should not move the project if it has an existing virtualenv living in the system. Otherwise need to reset the virtualenv by deleting and re-creating it from the Pipfile
+- Pyaudio requires a different dependency on raspberry pi, which in turn depends on portaudio. [Install portaudio 1st.](https://raspberrypi.stackexchange.com/questions/75031/cannot-install-pyaudio)
 
 	
 	
