@@ -2,21 +2,7 @@ import os
 import logging
 from lib.interpreters.interpreter import Interpreter
 from lib.interpreters.RasaInterpreter import RasaInterpreter
-from lib.commands import (
-	DefineWord,
-	GetNews,
-	GetWeatherForecast,
-	GoogleSearch,
-	PlayYoutubeVideo,
-	ShutdownSystem,
-	StartOfflineMusic,
-	StopOfflineMusic,
-	StopProgram,
-	TellAJoke,
-	TellTime,
-	WikiSearch,
-	DefaultCommand
-)
+from lib.commands import DefaultCommand
 import nltk
 from nltk.stem.lancaster import LancasterStemmer
 stemmer = LancasterStemmer()
