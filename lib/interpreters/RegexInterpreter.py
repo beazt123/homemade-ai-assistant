@@ -24,7 +24,7 @@ class RegexInterpreter(Interpreter):
 	def process(cls, command):
 		event = DefaultCommand.__name__
 		data = None
-		if re.search("^shutdown.*(computer$|system$)", command):
+		if re.search("^(shut down).*(computer$|system$)", command):
 			cls.logger.info("Detected shutdown command")
 			event = ShutdownSystem.__name__
 		elif re.search("(^youtube.*)|(.*(on youtube)$)", command):
