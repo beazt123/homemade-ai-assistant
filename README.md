@@ -97,6 +97,8 @@ Still need do research to implement them
 - [rasa init fails with import error "composition view" remedy](https://stackoverflow.com/questions/70506164/importerror-cannot-import-name-compositionview-from-sanic-views-when-i-trie)
 - Should not move the project if it has an existing virtualenv living in the system. Otherwise need to reset the virtualenv by deleting and re-creating it from the Pipfile
 - Pyaudio requires a different dependency on raspberry pi, which in turn depends on portaudio. [Install portaudio 1st.](https://raspberrypi.stackexchange.com/questions/75031/cannot-install-pyaudio)
+- [How to get sound on Docker container](https://github.com/mviereck/x11docker/wiki/Container-sound:-ALSA-or-Pulseaudio)
+- [Stupid compilation error libffi](https://pete.akeo.ie/2010/12/that-darn-libtoolize-acconfigmacrodirm4.html)
 
 	
 	

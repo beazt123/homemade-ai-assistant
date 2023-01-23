@@ -1,6 +1,5 @@
 import os
 from gtts import gTTS
-from io import BytesIO
 from .speech_engine import SpeechEngine
 from playsound import playsound
 import logging

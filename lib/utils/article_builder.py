@@ -15,9 +15,6 @@ class ArticleBuilder:
         self.bullet = ""
         self.textwrapper = textwrap.TextWrapper(width = 80)
 
-    # def getArticleLines(self):
-    #     return self.article.split("\n") 
-
     def getArticleInPlainText(self):
         temp = self.article.replace(ArticleBuilder.SECTION_SEP_TOKEN, "")
         temp = temp.replace(ArticleBuilder.CONTENT_SEP_TOKEN, "")
@@ -40,17 +37,16 @@ class ArticleBuilder:
         self.indent_level = 0
         self.indent_with = ""
 
-    def title(self, title):
+    def title(self, title: str):
         self.content(title.upper())
         # self.content("=" * len(title))
         self.br()
         logger.debug(f"Added title & newline: {title}")
         return self
 
-    def subtitle(self, subtitle):
+    def subtitle(self, subtitle: str):
         subtitle = subtitle.title()
         self.content(subtitle)
-        # self.content("-" * len(subtitle))
         logger.debug(f"Added subtitle: {subtitle}")
         return self
 

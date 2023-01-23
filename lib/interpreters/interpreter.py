@@ -1,92 +1,104 @@
+from __future__ import annotations
 import logging
+from typing import Any, Tuple
 import speech_recognition as sr
-from lib.receivers.mixins.soundEffectsMixin import SoundEffectsMixin
-from lib.receivers.mixins.asyncStdVoiceResponseMixin import AsyncStdVoiceResponseMixin
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from lib.runtime_context.config import Config
+
+from lib.commands.meta_command import MetaCommand
+
+from typing import TYPE_CHECKING
+
+from lib.runtime_context.configurable import Configurable
+from lib.runtime_context.mixins.async_std_voice_responses import AsyncStdVoiceResponses
+from lib.runtime_context.mixins.sound_effects import SoundEffects
+
+if TYPE_CHECKING:
+    from lib.commands.command import Command
 
 
+class Interpreter(Configurable):
+    logger = logging.getLogger(__name__)
+    FAILED_TOKEN = "!FAILED"
 
+    def __init__(self):
+        self.__class__.logger.info(f"Creating Sound effects mixin for {self.__class__.__name__}")
+        self.sound_effects: SoundEffects = None
 
+        self.__class__.logger.info(f"Creating Async standard AI voice response mixin for {self.__class__.__name__}")
+        self.async_std_voice_responses: AsyncStdVoiceResponses = None
+        self.__class__.logger.info(f"Created Async standard AI voice response mixin for {self.__class__.__name__}")
 
-class Interpreter(SoundEffectsMixin, AsyncStdVoiceResponseMixin, ABC):
-	logger = logging.getLogger(__name__)
-	FAILED_TOKEN = "!FAILED"
+        self.recogniser = sr.Recognizer()
+        self.listener = None
+        self.__class__.logger.debug(f"Created speech recongizer object for {self.__class__.__name__}")
 
-	def __init__(self, config, soundEngine, mic):
-		Interpreter.logger.info(f"Creating Sound effects mixin for {Interpreter.__name__}")
-		SoundEffectsMixin.__init__(self, config, soundEngine)
-		Interpreter.logger.info(f"Created effects mixin for {Interpreter.__name__}")
+    def set_config(self, config: Config):
+        self.async_std_voice_responses = config.runtime_context.async_std_voice_responses
+        self.listener = config.runtime_context.mic
+        self.sound_effects = config.runtime_context.sound_effects_engine
 
-		Interpreter.logger.info(f"Creating Async standard AI voice response mixin for {Interpreter.__name__}")
-		AsyncStdVoiceResponseMixin.__init__(self, config, soundEngine)
-		Interpreter.logger.info(f"Created Async standard AI voice response mixin for {Interpreter.__name__}")
+    def __del__(self):
+        try:
+            del self.listener
+            del self.recogniser
+        # self.engine.tearDown()
+        except AttributeError:
+            pass
 
-		self.listener = mic
-		self.recogniser = sr.Recognizer()
-		Interpreter.logger.debug(f"Created speech recongizer object for {Interpreter.__name__}")
-		
-	
-	def __del__(self):
-		try:
-			del self.listener
-			del self.recogniser
-			# self.engine.tearDown()
-		except AttributeError:
-			pass
-		
-	def adjust_for_ambient_noise(self):
-		Interpreter.logger.debug("Calibrating Mic")
-		with self.listener as source:
-			self.recogniser.adjust_for_ambient_noise(source, duration = 0.3)
-		
-	def listenAndTranscribe(self):
-		try:
-			with self.listener as source:
-				try:					
-					Interpreter.logger.info("Listening...")
-					voice = self.recogniser.listen(source, timeout = 2.5, phrase_time_limit = 4)
-					
-					Interpreter.logger.debug("Voice received")
-					command	= self.transcribe(voice)				
-					Interpreter.logger.debug("Transcribed voice")
-					command = command.strip().lower()
-					Interpreter.logger.info(f"Detected command: {command}")
-				except sr.WaitTimeoutError:
-					Interpreter.logger.info("User didn't speak")
-					command = Interpreter.FAILED_TOKEN
-		except sr.UnknownValueError:
-			Interpreter.logger.debug("No voice detected")
-			command = Interpreter.FAILED_TOKEN
-		
-		return command
+    def adjust_for_ambient_noise(self):
+        self.__class__.logger.debug("Calibrating Mic")
+        with self.listener as source:
+            self.recogniser.adjust_for_ambient_noise(source, duration=0.3)
 
-	def interpret(self):
-		if self.greetedUser():
-			self.readySound()
-		else:
-			self.greet(block = True)
-			self.offerHelp(block = True)
+    def listen_and_transcribe(self):
+        try:
+            with self.listener as source:
+                try:
+                    self.__class__.logger.info("Listening...")
+                    voice = self.recogniser.listen(source, timeout=2.5, phrase_time_limit=4)
 
-		command = self.listenAndTranscribe()
-		event, data = self.process(command)
-		Interpreter.logger.info(f"Event: {event}, Data: {data}")
-		
-		return event, data
-		
-	def transcribe(self, audio):
-		try:
-			command = self.recogniser.recognize_google(audio)
-			Interpreter.logger.info("Used Google online transcription service")
-		except sr.RequestError:
-			Interpreter.logger.warning("Internet unavailable. Using offline TTS")
-			command = self.recogniser.recognize_sphinx(audio)
-			Interpreter.logger.info("Used Sphinx offline transcription service")
+                    self.__class__.logger.debug("Voice received")
+                    command = self.transcribe(voice)
+                    self.__class__.logger.debug("Transcribed voice")
+                    command = command.strip().lower()
+                    self.__class__.logger.info(f"Detected command: {command}")
+                except sr.WaitTimeoutError:
+                    self.__class__.logger.info("User didn't speak")
+                    command = self.__class__.FAILED_TOKEN
+        except sr.UnknownValueError:
+            self.__class__.logger.debug("No voice detected")
+            command = self.__class__.FAILED_TOKEN
 
-		Interpreter.logger.info(f"Transcription: {command}")
-		return command
+        return command
 
-	@classmethod
-	@abstractmethod			
-	def process(cls, command):
-		'''Break down the command into Event and data objects'''
-		pass		
+    def interpret(self) -> MetaCommand:
+        if self.async_std_voice_responses.greeted_user():
+            self.sound_effects.ready_sound()
+        else:
+            self.async_std_voice_responses.greet(block=True)
+            self.async_std_voice_responses.offer_help(block=True)
+
+        transcription = self.listen_and_transcribe()
+        command, args = self.process(transcription)
+        self.__class__.logger.info(f"Event: {command}, Data: {args}")
+
+        return MetaCommand(command, args)
+
+    def transcribe(self, audio):
+        try:
+            command = self.recogniser.recognize_google(audio)
+            self.__class__.logger.info("Used Google online transcription service")
+        except sr.RequestError:
+            self.__class__.logger.warning("Internet unavailable. Using offline TTS")
+            command = self.recogniser.recognize_sphinx(audio)
+            self.__class__.logger.info("Used Sphinx offline transcription service")
+
+        self.__class__.logger.info(f"Transcription: {command}")
+        return command
+
+    @classmethod
+    @abstractmethod
+    def process(cls, command: Command) -> Tuple[Command, Any]:
+        '''Break down the command into Event and data objects'''
+        pass
